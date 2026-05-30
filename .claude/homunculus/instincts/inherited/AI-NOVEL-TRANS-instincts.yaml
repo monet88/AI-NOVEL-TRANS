@@ -1,0 +1,555 @@
+# Instincts generated from https://github.com/monet88/AI-NOVEL-TRANS
+# Generated: 2026-05-30T07:41:00.727Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: AI-NOVEL-TRANS-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/monet88/AI-NOVEL-TRANS
+---
+
+# AI NOVEL TRANS Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: feat, docs
+
+## Evidence
+
+- 3 commits analyzed
+- Detected conventional commit pattern
+- Examples: docs: backfill product docs, architecture, and harness infrastructure, feat: add local mt provider integration
+
+---
+id: AI-NOVEL-TRANS-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/monet88/AI-NOVEL-TRANS
+---
+
+# AI NOVEL TRANS Commit Length
+
+## Action
+
+Write moderate-length commit messages (~71 characters)
+
+## Evidence
+
+- Average commit message length: 71 chars
+- Based on 3 commits
+
+---
+id: AI-NOVEL-TRANS-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/monet88/AI-NOVEL-TRANS
+---
+
+# AI NOVEL TRANS Naming Files
+
+## Action
+
+Use camelCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: camelCase
+
+---
+id: AI-NOVEL-TRANS-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/monet88/AI-NOVEL-TRANS
+---
+
+# AI NOVEL TRANS Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: AI-NOVEL-TRANS-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/monet88/AI-NOVEL-TRANS
+---
+
+# AI NOVEL TRANS Export Style
+
+## Action
+
+Prefer default exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: default
+
+---
+id: AI-NOVEL-TRANS-test-framework
+trigger: "when writing tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/monet88/AI-NOVEL-TRANS
+---
+
+# AI NOVEL TRANS Test Framework
+
+## Action
+
+Use vitest as the test framework
+
+## Evidence
+
+- Test framework detected: vitest
+- File pattern: *.test.ts
+
+---
+id: AI-NOVEL-TRANS-test-naming
+trigger: "when creating a test file"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/monet88/AI-NOVEL-TRANS
+---
+
+# AI NOVEL TRANS Test Naming
+
+## Action
+
+Name test files using the pattern: *.test.ts
+
+## Evidence
+
+- File pattern: *.test.ts
+- Consistent across test files
+
+---
+id: AI-NOVEL-TRANS-test-mocking
+trigger: "when mocking dependencies in tests"
+confidence: 0.75
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/monet88/AI-NOVEL-TRANS
+---
+
+# AI NOVEL TRANS Test Mocking
+
+## Action
+
+Use vi.mock for mocking
+
+## Evidence
+
+- Mocking pattern detected: vi.mock
+- Consistent across test files
+
+---
+id: AI-NOVEL-TRANS-test-types
+trigger: "when planning tests for a feature"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/monet88/AI-NOVEL-TRANS
+---
+
+# AI NOVEL TRANS Test Types
+
+## Action
+
+Write unit, integration tests to match project standards
+
+## Evidence
+
+- Test types detected: unit, integration
+- Coverage config: no
+
+---
+id: AI-NOVEL-TRANS-workflow-feature-development-with-plans-and-docs
+trigger: "when doing feature development with plans and docs"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/monet88/AI-NOVEL-TRANS
+---
+
+# AI NOVEL TRANS Workflow Feature Development With Plans And Docs
+
+## Action
+
+Follow the feature-development-with-plans-and-docs workflow:
+1. Create or update detailed plan documents under plans/{feature}/ (phases, plan.md)
+2. Implement feature across relevant code files (e.g., components/, services/, server/)
+3. Update product documentation (docs/product/, docs/ARCHITECTURE.md, etc.)
+4. Add or update tests (e.g., hooks/*.test.ts, services/*.test.ts, server/tests/)
+5. Update package files or configuration as needed (e.g., package.json, requirements.txt)
+6. Generate and update reports under plans/reports/
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: plans/{feature}/phase-*.md, plans/{feature}/plan.md, plans/reports/*{feature}*.md
+
+---
+id: AI-NOVEL-TRANS-workflow-phase-based-feature-tracking-in-plans
+trigger: "when doing phase based feature tracking in plans"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/monet88/AI-NOVEL-TRANS
+---
+
+# AI NOVEL TRANS Workflow Phase Based Feature Tracking In Plans
+
+## Action
+
+Follow the phase-based-feature-tracking-in-plans workflow:
+1. Create or update plans/{feature}/phase-*.md for each phase
+2. Update plans/{feature}/plan.md to reflect current status and completed phases
+3. Mark phases as complete in plan docs as implementation progresses
+4. Optionally, add a report to plans/reports/ summarizing the phase or feature
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: plans/{feature}/phase-*.md, plans/{feature}/plan.md, plans/reports/*{feature}*.md
+
+---
+id: AI-NOVEL-TRANS-workflow-comprehensive-documentation-backfill
+trigger: "when doing comprehensive documentation backfill"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/monet88/AI-NOVEL-TRANS
+---
+
+# AI NOVEL TRANS Workflow Comprehensive Documentation Backfill
+
+## Action
+
+Follow the comprehensive-documentation-backfill workflow:
+1. Add or update docs/product/ files (product-overview, features, data-model, user-flows)
+2. Update architecture and test matrix docs (docs/ARCHITECTURE.md, docs/TEST_MATRIX.md)
+3. Add or enrich conventions and agent docs (AGENTS.md, CLAUDE.md, etc.)
+4. Add templates or decision records under docs/templates/ and docs/decisions/
+5. Remove obsolete plans or documentation
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: docs/product/*.md, docs/ARCHITECTURE.md, docs/TEST_MATRIX.md
+
+---
+id: ai-novel-trans-instinct-camelcase-files
+trigger: "When creating or renaming a file in the codebase"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: monet88/AI-NOVEL-TRANS
+---
+
+# Ai Novel Trans Instinct Camelcase Files
+
+## Action
+
+Name the file using camelCase convention
+
+## Evidence
+
+- Pattern in namingConventions.files: camelCase
+
+---
+id: ai-novel-trans-instinct-camelcase-functions
+trigger: "When defining a function"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: monet88/AI-NOVEL-TRANS
+---
+
+# Ai Novel Trans Instinct Camelcase Functions
+
+## Action
+
+Name the function using camelCase convention
+
+## Evidence
+
+- Pattern in namingConventions.functions: camelCase
+
+---
+id: ai-novel-trans-instinct-pascalcase-classes
+trigger: "When defining a class"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: monet88/AI-NOVEL-TRANS
+---
+
+# Ai Novel Trans Instinct Pascalcase Classes
+
+## Action
+
+Name the class using PascalCase convention
+
+## Evidence
+
+- Pattern in namingConventions.classes: PascalCase
+
+---
+id: ai-novel-trans-instinct-screaming-consts
+trigger: "When declaring a constant"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: monet88/AI-NOVEL-TRANS
+---
+
+# Ai Novel Trans Instinct Screaming Consts
+
+## Action
+
+Name the constant using SCREAMING_SNAKE_CASE
+
+## Evidence
+
+- Pattern in namingConventions.constants: SCREAMING_SNAKE_CASE
+
+---
+id: ai-novel-trans-instinct-relative-imports
+trigger: "When importing modules in TypeScript files"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: monet88/AI-NOVEL-TRANS
+---
+
+# Ai Novel Trans Instinct Relative Imports
+
+## Action
+
+Use relative import paths
+
+## Evidence
+
+- Pattern in importStyle: relative
+
+---
+id: ai-novel-trans-instinct-default-exports
+trigger: "When exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: monet88/AI-NOVEL-TRANS
+---
+
+# Ai Novel Trans Instinct Default Exports
+
+## Action
+
+Use default export style
+
+## Evidence
+
+- Pattern in exportStyle: default
+
+---
+id: ai-novel-trans-instinct-vitest-pattern
+trigger: "When writing a test for TypeScript code"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: monet88/AI-NOVEL-TRANS
+---
+
+# Ai Novel Trans Instinct Vitest Pattern
+
+## Action
+
+Place the test in a file named *.test.ts and use vitest as the testing framework
+
+## Evidence
+
+- Pattern in testing.filePattern: *.test.ts
+- Pattern in testing.framework: vitest
+
+---
+id: ai-novel-trans-instinct-vi-mock
+trigger: "When mocking dependencies in tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: monet88/AI-NOVEL-TRANS
+---
+
+# Ai Novel Trans Instinct Vi Mock
+
+## Action
+
+Use vi.mock for mocking
+
+## Evidence
+
+- Pattern in testing.mockingStyle: vi.mock
+
+---
+id: ai-novel-trans-instinct-mixed-test-location
+trigger: "When adding tests for new or existing code"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: monet88/AI-NOVEL-TRANS
+---
+
+# Ai Novel Trans Instinct Mixed Test Location
+
+## Action
+
+Place test files alongside implementation files (mixed location)
+
+## Evidence
+
+- Pattern in architecture.folderStructure.testLocation: mixed
+
+---
+id: ai-novel-trans-instinct-try-catch-errors
+trigger: "When handling errors in TypeScript code"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: monet88/AI-NOVEL-TRANS
+---
+
+# Ai Novel Trans Instinct Try Catch Errors
+
+## Action
+
+Use try-catch blocks for error handling
+
+## Evidence
+
+- Pattern in errorHandling.style: try-catch
+
+---
+id: ai-novel-trans-instinct-conventional-commits
+trigger: "When writing a git commit message"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: monet88/AI-NOVEL-TRANS
+---
+
+# Ai Novel Trans Instinct Conventional Commits
+
+## Action
+
+Use conventional commit prefixes such as feat or docs
+
+## Evidence
+
+- Pattern in commits.prefixes: ["feat", "docs"]
+- Seen in commit: feat: add local mt provider integration
+
+---
+id: ai-novel-trans-instinct-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: monet88/AI-NOVEL-TRANS
+---
+
+# Ai Novel Trans Instinct Commit Length
+
+## Action
+
+Keep commit messages concise, averaging around 70 characters
+
+## Evidence
+
+- Pattern in commits.averageLength: 71
+
+---
+id: ai-novel-trans-instinct-feature-development-with-plans-and-docs
+trigger: "When adding a significant new feature or integration"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: monet88/AI-NOVEL-TRANS
+---
+
+# Ai Novel Trans Instinct Feature Development With Plans And Docs
+
+## Action
+
+Create/update plans/{feature}/, implement code, update docs, add tests, update configs, and generate reports as per the workflow
+
+## Evidence
+
+- Workflow: feature-development-with-plans-and-docs
+- Files involved: plans/{feature}/, docs/product/, components/, services/, server/, hooks/, package.json, requirements.txt
+
+---
+id: ai-novel-trans-instinct-phase-based-feature-tracking-in-plans
+trigger: "When implementing a multi-phase feature"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: monet88/AI-NOVEL-TRANS
+---
+
+# Ai Novel Trans Instinct Phase Based Feature Tracking In Plans
+
+## Action
+
+Track progress using plans/{feature}/phase-*.md, update plan.md, mark phases complete, and optionally add a report
+
+## Evidence
+
+- Workflow: phase-based-feature-tracking-in-plans
+- Files involved: plans/{feature}/phase-*.md, plans/{feature}/plan.md, plans/reports/*{feature}*.md
+
+---
+id: ai-novel-trans-instinct-comprehensive-documentation-backfill
+trigger: "When documentation needs to be backfilled or overhauled"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: monet88/AI-NOVEL-TRANS
+---
+
+# Ai Novel Trans Instinct Comprehensive Documentation Backfill
+
+## Action
+
+Update docs/product/, docs/ARCHITECTURE.md, docs/TEST_MATRIX.md, conventions, templates, and remove obsolete docs
+
+## Evidence
+
+- Workflow: comprehensive-documentation-backfill
+- Files involved: docs/product/*.md, docs/ARCHITECTURE.md, docs/TEST_MATRIX.md, AGENTS.md, CLAUDE.md, docs/templates/*.md, docs/decisions/*.md
+
