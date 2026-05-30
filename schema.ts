@@ -30,15 +30,20 @@ export const GlossaryTermSchema = z.object({
   translation: z.string(),
   gender: GenderSchema,
   matchType: MatchTypeSchema,
+  variants: z.array(z.string()).optional(),
 });
 
 export const TranslationSettingsSchema = z.object({
-  aiProvider: z.enum(['gemini', 'openai', 'deepseek']),
+  aiProvider: z.enum(['gemini', 'openai', 'deepseek', 'local-mt']),
   geminiApiKey: z.string(),
   openaiApiKey: z.string(),
   openaiApiEndpoint: z.string(),
   deepseekApiKey: z.string(),
   deepseekApiEndpoint: z.string(),
+  localMtEndpoint: z.string(),
+  localMtMode: z.enum(['offline', 'hybrid']),
+  localMtHybridTarget: z.enum(['client', 'server']),
+  localMtGlossaryProvider: z.enum(['gemini', 'openai', 'deepseek', 'none']),
   glossary: z.array(GlossaryTermSchema),
   useGlossaryAI: z.boolean(),
   defaultMatchType: MatchTypeSchema,

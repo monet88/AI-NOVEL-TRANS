@@ -1,8 +1,9 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import XMarkIcon from '../icons/XMarkIcon';
 import { useProjectContext, useUIContext, useGlossaryContext } from '../../contexts';
 import { BatchOrchestrator, BatchChapter, ChapterStatus, BatchProcessState } from '../../services/batchOrchestrator';
+import { testLocalMTConnection, testLocalMTFallbackProviderConnection } from '../../services/aiService';
 import BatchChapterRow from '../workspace/BatchChapterRow';
 import InteractiveGlossaryApproval from '../workspace/InteractiveGlossaryApproval';
 import type { GlossaryTerm } from '../../types';
@@ -47,6 +48,16 @@ const BatchTranslateModal: React.FC = () => {
         reviewResolveRef.current = null;
     }
   };
+
+  const handleCancelReview = () => {
+    setReviewTerms(null);
+    if (reviewResolveRef.current) {
+        reviewResolveRef.current([]);
+        reviewResolveRef.current = null;
+    }
+    orchestratorRef.current?.stop(); // I might need to implement stop()
+    setIsBatchTranslateOpen(false);
+  };
   const orchestratorRef = useRef<BatchOrchestrator | null>(null);
   
   const onClose = () => {
@@ -62,24 +73,70 @@ const BatchTranslateModal: React.FC = () => {
     setSelectedChapterIds(new Set(allChapters.map(c => c.id)));
   }, [project]);
 
+  const validateBatchTranslatePrerequisites = useCallback(async (): Promise<boolean> => {
+    const { aiProvider, openaiApiKey, deepseekApiKey } = settings;
+
+    if (aiProvider === 'local-mt') {
+        const fallbackProvider = settings.localMtGlossaryProvider;
+        if (
+            settings.localMtMode === 'hybrid' &&
+            settings.localMtHybridTarget === 'client' &&
+            fallbackProvider === 'none'
+        ) {
+            alert('Client-side hybrid Local MT requires a fallback LLM provider. Configure one in AI Settings and try again.');
+            return false;
+        }
+
+        if (fallbackProvider !== 'none') {
+            const fallbackHealth = await testLocalMTFallbackProviderConnection(settings);
+            if (!fallbackHealth.success) {
+                alert(`${fallbackHealth.message} Configure the fallback provider in AI Settings and try again.`);
+                return false;
+            }
+        }
+
+        const health = await testLocalMTConnection(settings);
+        if (!health.success) {
+            alert(`${health.message} Start the local MT server at ${settings.localMtEndpoint} and try again.`);
+            return false;
+        }
+    }
+
+    if ((aiProvider === 'openai' && !openaiApiKey) || (aiProvider === 'deepseek' && !deepseekApiKey)) {
+        const providerName = aiProvider.charAt(0).toUpperCase() + aiProvider.slice(1);
+        alert(`${providerName} API key is missing. Please add it in the AI Settings.`);
+        return false;
+    }
+
+    return true;
+  }, [settings]);
+
   useEffect(() => {
     if (pendingResumeJob && project && project.id === pendingResumeJob.projectId) {
-        const orchestrator = new BatchOrchestrator({
-            projectId: project.id,
-            chapters: project.chapters,
-            settings: JSON.parse(JSON.stringify(settings)),
-            targetLang: 'vi',
-            requestGlossaryReview: handleRequestInternalReview,
-            onGlossaryUpdate: handleAddReviewedTerms,
-            onChaptersUpdate: handleUpdateChapters,
-            addLog,
-        });
-        orchestratorRef.current = orchestrator;
-        orchestrator.on<BatchProcessState>('stateUpdate', (state) => setBatchState(state));
-        orchestrator.start(pendingResumeJob.state);
-        clearPendingResumeJob();
+        const resumeBatch = async () => {
+            if (!(await validateBatchTranslatePrerequisites())) {
+                return;
+            }
+
+            const orchestrator = new BatchOrchestrator({
+                projectId: project.id,
+                chapters: project.chapters,
+                settings: JSON.parse(JSON.stringify(settings)),
+                targetLang: 'vi',
+                requestGlossaryReview: handleRequestInternalReview,
+                onGlossaryUpdate: handleAddReviewedTerms,
+                onChaptersUpdate: handleUpdateChapters,
+                addLog,
+            });
+            orchestratorRef.current = orchestrator;
+            orchestrator.on<BatchProcessState>('stateUpdate', (state) => setBatchState(state));
+            orchestrator.start(pendingResumeJob.state);
+            clearPendingResumeJob();
+        };
+
+        void resumeBatch();
     }
-  }, [pendingResumeJob, project, settings, handleStartGlossaryReview, handleAddReviewedTerms, handleUpdateChapters, clearPendingResumeJob, addLog]);
+  }, [pendingResumeJob, project, settings, handleStartGlossaryReview, handleAddReviewedTerms, handleUpdateChapters, clearPendingResumeJob, addLog, validateBatchTranslatePrerequisites]);
 
 
   const handleToggleSelection = (chapterId: string) => {
@@ -99,10 +156,7 @@ const BatchTranslateModal: React.FC = () => {
 
   const handleStartBatchTranslate = async () => {
     if (!project) return;
-    const { aiProvider, openaiApiKey, deepseekApiKey } = settings;
-    if ((aiProvider === 'openai' && !openaiApiKey) || (aiProvider === 'deepseek' && !deepseekApiKey)) {
-        const providerName = aiProvider.charAt(0).toUpperCase() + aiProvider.slice(1);
-        alert(`${providerName} API key is missing. Please add it in the AI Settings.`);
+    if (!(await validateBatchTranslatePrerequisites())) {
         return;
     }
 
@@ -137,10 +191,10 @@ const BatchTranslateModal: React.FC = () => {
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4" onClick={onClose}>
-        <div className="bg-dark-panel rounded-xl shadow-2xl w-full h-full sm:max-w-2xl sm:h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="bg-dark-panel rounded-xl shadow-2xl w-full h-full sm:max-w-2xl sm:h-[70vh] flex flex-col" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="batch-translate-title">
           <header className="p-4 border-b border-border-color flex justify-between items-center flex-shrink-0">
-            <h2 className="text-lg font-bold">Batch Translate Chapters</h2>
-            <button onClick={onClose} className="p-1 rounded-full hover:bg-dark-hover" disabled={running}>
+            <h2 id="batch-translate-title" className="text-lg font-bold">Batch Translate Chapters</h2>
+            <button onClick={onClose} className="p-1 rounded-full hover:bg-dark-hover" disabled={running} aria-label="Close batch translate">
               <XMarkIcon className="w-6 h-6 text-text-secondary"/>
             </button>
           </header>
@@ -150,11 +204,7 @@ const BatchTranslateModal: React.FC = () => {
               <InteractiveGlossaryApproval 
                 terms={reviewTerms} 
                 onComplete={handleClearReview}
-                onCancel={() => {
-                  setReviewTerms(null);
-                  orchestratorRef.current?.stop(); // I might need to implement stop()
-                  setIsBatchTranslateOpen(false);
-                }}
+                onCancel={handleCancelReview}
               />
             ) : !running && phase === 'idle' ? (
               <>

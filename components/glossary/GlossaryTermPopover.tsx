@@ -80,7 +80,7 @@ const GlossaryTermPopover: React.FC<GlossaryTermPopoverProps> = ({ term, anchorE
     >
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-text-primary text-lg truncate pr-2" title={term.input}>{term.input}</h3>
-        <button onClick={onClose} className="p-1 rounded-full hover:bg-dark-hover flex-shrink-0">
+        <button onClick={onClose} className="p-1 rounded-full hover:bg-dark-hover flex-shrink-0" aria-label="Close glossary term editor">
             <XMarkIcon className="w-5 h-5 text-text-secondary"/>
         </button>
       </div>
@@ -92,6 +92,7 @@ const GlossaryTermPopover: React.FC<GlossaryTermPopoverProps> = ({ term, anchorE
           value={editedTerm.translation}
           onChange={e => handleChange('translation', e.target.value)}
           className="w-full bg-dark-input p-2 rounded-md border border-border-color focus:outline-none focus:ring-1 focus:ring-accent-primary"
+          aria-label="Glossary term translation"
         />
       </div>
 

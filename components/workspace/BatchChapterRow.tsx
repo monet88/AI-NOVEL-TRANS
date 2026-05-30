@@ -41,6 +41,7 @@ const BatchChapterRow: React.FC<BatchChapterRowProps> = React.memo(({
                         onChange={() => onToggleSelection(chapter.id)}
                         className="h-4 w-4 rounded-md bg-dark-hover border-border-color text-accent-primary focus:ring-accent-primary disabled:opacity-50"
                         disabled={!isInteractive || !hasContent}
+                        aria-label={`Select chapter ${chapter.name}`}
                     />
                 )}
                 <span className={`text-text-primary truncate ${!hasContent ? 'text-opacity-50' : ''}`} title={chapter.name}>

@@ -62,6 +62,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onOpen, onRename, on
                         onBlur={handleRename}
                         onKeyDown={(e) => e.key === 'Enter' && handleRename()}
                         className="text-lg font-bold bg-dark-input text-text-primary w-full px-2 py-1 rounded-md mb-2"
+                        aria-label="Project name"
                     />
                 ) : (
                     <h3 className="text-lg font-bold text-text-primary truncate" title={project.name}>{project.name}</h3>

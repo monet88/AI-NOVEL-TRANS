@@ -71,12 +71,16 @@ Per-project memory of previously translated segments.
 
 ```
 TranslationSettings {
-  aiProvider: 'gemini' | 'openai' | 'deepseek'
+  aiProvider: 'gemini' | 'openai' | 'deepseek' | 'local-mt'
   geminiApiKey: string
   openaiApiKey: string
   openaiApiEndpoint: string
   deepseekApiKey: string
   deepseekApiEndpoint: string
+  localMtEndpoint: string
+  localMtMode: 'offline' | 'hybrid'
+  localMtHybridTarget: 'client' | 'server'
+  localMtGlossaryProvider: 'gemini' | 'openai' | 'deepseek' | 'none'
   glossary: GlossaryTerm[]
   useGlossaryAI: boolean
   defaultMatchType: MatchType

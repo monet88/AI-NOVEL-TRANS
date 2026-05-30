@@ -105,12 +105,14 @@ Settings are managed via `useSettings` hook (localStorage/IndexedDB).
 aiService.ts (facade)
   ├── api/gemini/    — @google/genai SDK
   ├── api/openai/    — fetch-based, OpenAI-compatible endpoint
-  └── api/deepseek/  — fetch-based, DeepSeek endpoint
+  ├── api/deepseek/  — fetch-based, DeepSeek endpoint
+  └── api/local-mt/  — fetch-based local FastAPI endpoint
 ```
 
 All providers implement the same interface: `translateTextStream`,
 `translateText`, `extractGlossaryTerms`. Provider selection is runtime
-(settings.aiProvider).
+(`settings.aiProvider`), including `local-mt` with explicit local endpoint and
+fallback LLM settings when configured.
 
 ## Persistence
 
@@ -126,6 +128,6 @@ beyond manual JSON export.
 
 - Tailwind loaded via CDN script tag (no purging, no build-time optimization)
 - No routing library — view state managed in Context (`dashboard` | `workspace`)
-- No test framework installed
+- Vitest is installed for browser-side contract and service tests
 - Large `constants.ts` (~500+ lines of prompt templates)
 - Glossary is global, not per-project

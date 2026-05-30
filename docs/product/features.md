@@ -4,7 +4,8 @@
 
 ### Single Chapter Translation
 - Streaming translation with real-time output display
-- Provider selection: Gemini, OpenAI, DeepSeek
+- Provider selection: Gemini, OpenAI, DeepSeek, Local MT
+- Local MT health preflight before translation starts
 - Custom prompt override per translation call
 - Automatic glossary injection into translation prompt
 - Post-processing: strip wrapper quotes, remove "translation:" prefix
@@ -13,6 +14,7 @@
 - Translate multiple chapters sequentially
 - Progress tracking per chapter (Pending → InProgress → Translating → Completed/Failed)
 - Event-driven architecture (EventEmitter pattern)
+- Local MT preflight for fresh starts and resumed jobs
 - Two-phase batch: glossary extraction first, then translation
 
 ### Genre Presets
@@ -37,6 +39,7 @@
 
 ### Batch Glossary Extraction
 - Extract glossary from multiple chapters at once
+- Local MT offline mode blocks extraction unless a fallback LLM provider is configured
 - Review modal for bulk approval
 
 ### Glossary in Translation
@@ -79,6 +82,11 @@
 ### Provider Configuration
 - API key management per provider
 - Custom endpoint URLs for OpenAI/DeepSeek compatible APIs
+- Local MT endpoint configuration (`http://localhost:8000` by default)
+- Local MT mode selection: Offline / Hybrid
+- Local MT hybrid target: Client-side / Server-side
+- Local MT fallback LLM provider selection for glossary extraction and client-side hybrid polish
+- Connection tests for remote and local providers
 - Toggle AI-assisted glossary usage
 
 ### Translation Configuration

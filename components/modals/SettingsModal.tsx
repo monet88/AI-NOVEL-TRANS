@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { TranslationSettings } from '../../types';
 import { MatchType } from '../../types';
-import { testOpenAIConnection, testDeepSeekConnection, testGeminiConnection } from '../../services/aiService';
+import { testOpenAIConnection, testDeepSeekConnection, testGeminiConnection, testLocalMTConnection } from '../../services/aiService';
 import XMarkIcon from '../icons/XMarkIcon';
 import InformationCircleIcon from '../icons/InformationCircleIcon';
 import BrainIcon from '../icons/BrainIcon';
@@ -36,6 +36,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     const [openAITestMessage, setOpenAITestMessage] = useState('');
     const [deepSeekTestStatus, setDeepSeekTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
     const [deepSeekTestMessage, setDeepSeekTestMessage] = useState('');
+    const [localMtTestStatus, setLocalMtTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
+    const [localMtTestMessage, setLocalMtTestMessage] = useState('');
     const [geminiTestStatus, setGeminiTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
     const [geminiTestMessage, setGeminiTestMessage] = useState('');
     const [isOAKeyVisible, setIsOAKeyVisible] = useState(false);
@@ -81,6 +83,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
+
 
     const handleStyleChange = (style: string) => {
         setSelectedStyle(style);
@@ -140,7 +143,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
         setDeepSeekTestStatus(result.success ? 'success' : 'error');
         setDeepSeekTestMessage(result.message);
     };
-    
+
+    const handleTestLocalMTConnection = async () => {
+        setLocalMtTestStatus('testing');
+        setLocalMtTestMessage('');
+        const result = await testLocalMTConnection(settings);
+        setLocalMtTestStatus(result.success ? 'success' : 'error');
+        setLocalMtTestMessage(result.message);
+    };
+
     const handleToggle = (key: keyof TranslationSettings) => {
         handleSettingsChange(prev => ({...prev, [key]: !prev[key] }));
     };
@@ -148,13 +159,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     const selectedStyleName = AI_STYLES.find(s => s.id === selectedStyle)?.name || 'Custom';
 
     return (
-        <div className="fixed inset-0 bg-dark-bg z-40 flex flex-col animate-fade-in">
+        <div className="fixed inset-0 bg-dark-bg z-40 flex flex-col animate-fade-in" role="dialog" aria-modal="true" aria-labelledby="ai-settings-title">
             <header className="p-4 border-b border-border-color flex justify-between items-center flex-shrink-0">
                 <div className="flex items-center space-x-2">
                     <BrainIcon />
-                    <h2 className="text-lg font-bold">AI Settings</h2>
+                    <h2 id="ai-settings-title" className="text-lg font-bold">AI Settings</h2>
                 </div>
-                <button onClick={onClose} className="p-1 rounded-full hover:bg-dark-hover">
+                <button onClick={onClose} className="p-1 rounded-full hover:bg-dark-hover" aria-label="Close settings">
                     <XMarkIcon className="w-6 h-6 text-text-secondary"/>
                 </button>
             </header>
@@ -186,6 +197,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                 >
                                     DeepSeek
                                 </button>
+                                <button
+                                    onClick={() => handleSettingsChange(prev => ({ ...prev, aiProvider: 'local-mt' }))}
+                                    className={`flex-1 py-1.5 px-3 text-sm font-semibold rounded-md transition-colors ${settings.aiProvider === 'local-mt' ? 'bg-accent-primary text-white' : 'text-text-secondary hover:bg-dark-hover'}`}
+                                >
+                                    Local MT
+                                </button>
                         </div>
                         {settings.aiProvider === 'gemini' && (
                             <div className="mt-4 space-y-3 animate-fade-in">
@@ -204,8 +221,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                             }}
                                             placeholder="Overrides default key if provided"
                                             className="w-full bg-dark-input p-2 rounded-md border border-border-color focus:outline-none focus:ring-1 focus:ring-accent-primary text-sm"
+                                            aria-label="Gemini API key"
                                         />
-                                        <button type="button" onClick={() => setIsGeminiKeyVisible(p => !p)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                        <button type="button" onClick={() => setIsGeminiKeyVisible(p => !p)} className="absolute inset-y-0 right-0 pr-3 flex items-center" aria-label={isGeminiKeyVisible ? 'Hide Gemini API key' : 'Show Gemini API key'}>
                                             {isGeminiKeyVisible ? <EyeSlashIcon className="h-5 w-5 text-text-secondary" /> : <EyeIcon className="h-5 w-5 text-text-secondary" />}
                                         </button>
                                     </div>
@@ -246,8 +264,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                             }}
                                             placeholder="Enter your OpenAI API key (sk-...)"
                                             className="w-full bg-dark-input p-2 rounded-md border border-border-color focus:outline-none focus:ring-1 focus:ring-accent-primary text-sm"
+                                            aria-label="OpenAI API key"
                                         />
-                                        <button type="button" onClick={() => setIsOAKeyVisible(p => !p)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                        <button type="button" onClick={() => setIsOAKeyVisible(p => !p)} className="absolute inset-y-0 right-0 pr-3 flex items-center" aria-label={isOAKeyVisible ? 'Hide OpenAI API key' : 'Show OpenAI API key'}>
                                             {isOAKeyVisible ? <EyeSlashIcon className="h-5 w-5 text-text-secondary" /> : <EyeIcon className="h-5 w-5 text-text-secondary" />}
                                         </button>
                                     </div>
@@ -285,15 +304,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                             }}
                                             placeholder="Enter your DeepSeek API key"
                                             className="w-full bg-dark-input p-2 rounded-md border border-border-color focus:outline-none focus:ring-1 focus:ring-accent-primary text-sm"
+                                            aria-label="DeepSeek API key"
                                         />
-                                        <button type="button" onClick={() => setIsDSKeyVisible(p => !p)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                        <button type="button" onClick={() => setIsDSKeyVisible(p => !p)} className="absolute inset-y-0 right-0 pr-3 flex items-center" aria-label={isDSKeyVisible ? 'Hide DeepSeek API key' : 'Show DeepSeek API key'}>
                                             {isDSKeyVisible ? <EyeSlashIcon className="h-5 w-5 text-text-secondary" /> : <EyeIcon className="h-5 w-5 text-text-secondary" />}
                                         </button>
                                     </div>
                                 </div>
                                 <div className="flex items-center space-x-4 pt-1">
-                                    <button 
-                                        onClick={handleTestDeepSeekConnection} 
+                                    <button
+                                        onClick={handleTestDeepSeekConnection}
                                         disabled={deepSeekTestStatus === 'testing' || !settings.deepseekApiKey}
                                         className="px-4 py-1.5 rounded-md text-sm font-medium bg-dark-hover text-text-secondary hover:text-text-primary disabled:opacity-50 disabled:cursor-wait"
                                     >
@@ -305,6 +325,127 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                         </p>
                                     )}
                                 </div>
+                            </div>
+                        )}
+                        {settings.aiProvider === 'local-mt' && (
+                            <div className="mt-4 space-y-4 animate-fade-in">
+                                <div>
+                                    <label htmlFor="local-mt-endpoint" className="block text-sm font-medium text-text-primary mb-2">
+                                        Local MT Server Endpoint
+                                    </label>
+                                    <input
+                                        id="local-mt-endpoint"
+                                        type="text"
+                                        value={settings.localMtEndpoint}
+                                        onChange={(e) => {
+                                            handleSettingsChange(prev => ({ ...prev, localMtEndpoint: e.target.value }));
+                                            setLocalMtTestStatus('idle');
+                                        }}
+                                        placeholder="http://localhost:8000"
+                                        className="w-full bg-dark-input p-2 rounded-md border border-border-color focus:outline-none focus:ring-1 focus:ring-accent-primary text-sm"
+                                        aria-label="Local MT server endpoint"
+                                    />
+                                    <p className="text-xs text-text-secondary mt-2 px-1">
+                                        Pure offline mode uses your local FastAPI server and does not require an API key.
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label htmlFor="local-mt-mode" className="block text-xs font-medium text-text-secondary mb-1">
+                                            Mode
+                                        </label>
+                                        <select
+                                            id="local-mt-mode"
+                                            value={settings.localMtMode}
+                                            onChange={(e) => handleSettingsChange(prev => {
+                                                const nextMode = e.target.value as 'offline' | 'hybrid';
+                                                return {
+                                                    ...prev,
+                                                    localMtMode: nextMode,
+                                                    localMtHybridTarget:
+                                                        nextMode === 'hybrid' &&
+                                                        prev.localMtGlossaryProvider === 'none' &&
+                                                        prev.localMtHybridTarget === 'client'
+                                                            ? 'server'
+                                                            : prev.localMtHybridTarget,
+                                                };
+                                            })}
+                                            className="w-full bg-dark-bg p-2 rounded-md border border-border-color text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary"
+                                        >
+                                            <option value="offline">Offline</option>
+                                            <option value="hybrid">Hybrid</option>
+                                        </select>
+                                    </div>
+
+                                    {settings.localMtMode === 'hybrid' && (
+                                        <div>
+                                            <label htmlFor="local-mt-hybrid-target" className="block text-xs font-medium text-text-secondary mb-1">
+                                                Hybrid Target
+                                            </label>
+                                            <select
+                                                id="local-mt-hybrid-target"
+                                                value={settings.localMtHybridTarget}
+                                                onChange={(e) => handleSettingsChange(prev => ({ ...prev, localMtHybridTarget: e.target.value as 'client' | 'server' }))}
+                                                className="w-full bg-dark-bg p-2 rounded-md border border-border-color text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary"
+                                            >
+                                                <option value="client" disabled={settings.localMtGlossaryProvider === 'none'}>Client-side</option>
+                                                <option value="server">Server-side</option>
+                                            </select>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label htmlFor="local-mt-glossary-provider" className="block text-xs font-medium text-text-secondary mb-1">
+                                        Fallback LLM Provider
+                                    </label>
+                                    <select
+                                        id="local-mt-glossary-provider"
+                                        value={settings.localMtGlossaryProvider}
+                                        onChange={(e) => handleSettingsChange(prev => {
+                                            const nextProvider = e.target.value as 'gemini' | 'openai' | 'deepseek' | 'none';
+                                            return {
+                                                ...prev,
+                                                localMtGlossaryProvider: nextProvider,
+                                                localMtHybridTarget:
+                                                    nextProvider === 'none' &&
+                                                    prev.localMtMode === 'hybrid' &&
+                                                    prev.localMtHybridTarget === 'client'
+                                                        ? 'server'
+                                                        : prev.localMtHybridTarget,
+                                            };
+                                        })}
+                                        className="w-full bg-dark-bg p-2 rounded-md border border-border-color text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary"
+                                    >
+                                        <option value="none">None</option>
+                                        <option value="gemini">Gemini</option>
+                                        <option value="openai">OpenAI</option>
+                                        <option value="deepseek">DeepSeek</option>
+                                    </select>
+                                    <p className="text-xs text-text-secondary mt-2 px-1">
+                                        Used for glossary extraction when offline and for client-side hybrid polishing.
+                                    </p>
+                                </div>
+
+                                <div className="flex items-center space-x-4 pt-1">
+                                    <button
+                                        onClick={handleTestLocalMTConnection}
+                                        disabled={localMtTestStatus === 'testing'}
+                                        className="px-4 py-1.5 rounded-md text-sm font-medium bg-dark-hover text-text-secondary hover:text-text-primary disabled:opacity-50 disabled:cursor-wait"
+                                    >
+                                        {localMtTestStatus === 'testing' ? 'Testing...' : 'Test Connection'}
+                                    </button>
+                                    {localMtTestStatus !== 'idle' && localMtTestStatus !== 'testing' && localMtTestMessage && (
+                                        <p className={`text-sm animate-fade-in ${localMtTestStatus === 'success' ? 'text-success' : 'text-danger'}`}>
+                                            {localMtTestMessage}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <p className="text-xs text-text-secondary px-1">
+                                    Hybrid mode can polish the MT draft with your configured LLM provider. Server-side hybrid uses the local backend; client-side hybrid reuses browser-side provider settings.
+                                </p>
                             </div>
                         )}
                     </div>
@@ -320,6 +461,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                 type="button"
                                 onClick={() => setIsStyleDropdownOpen(p => !p)}
                                 className="w-full bg-dark-input p-2 rounded-md border border-border-color flex items-center justify-between text-left focus:outline-none focus:ring-1 focus:ring-accent-primary"
+                                aria-label="Select predefined AI style"
                             >
                                 <span className="font-semibold text-text-primary">{selectedStyleName}</span>
                                 <ChevronDownIcon className={`w-5 h-5 text-text-secondary transition-transform ${isStyleDropdownOpen ? 'rotate-180' : ''}`} />
@@ -356,7 +498,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                 <p className="text-xs text-text-secondary">Automatically detect and suggest key terms to add to your glossary.</p>
                             </div>
                             <div className="flex items-center space-x-4">
-                                <button onClick={() => handleToggle('useGlossaryAI')} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.useGlossaryAI ? 'bg-accent-primary' : 'bg-gray-600'}`}>
+                                <button onClick={() => handleToggle('useGlossaryAI')} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.useGlossaryAI ? 'bg-accent-primary' : 'bg-gray-600'}`} aria-label={settings.useGlossaryAI ? 'Disable glossary AI' : 'Enable glossary AI'}>
                                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.useGlossaryAI ? 'translate-x-6' : 'translate-x-1'}`} />
                                 </button>
                             </div>
@@ -407,6 +549,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                     }}
                                     placeholder="e.g., Extract all character names and locations. Suggest translations in a formal style."
                                     className="w-full bg-dark-bg p-2 rounded-md border border-border-color focus:outline-none focus:ring-1 focus:ring-accent-primary text-sm"
+                                    aria-label="Glossary extraction instructions"
                                 />
                             </div>
                             <div>
@@ -420,6 +563,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                     onChange={e => handleSettingsChange(prev => ({ ...prev, exclusionList: e.target.value }))}
                                     placeholder="e.g., the, a, common word, another common word"
                                     className="w-full bg-dark-bg p-2 rounded-md border border-border-color focus:outline-none focus:ring-1 focus:ring-accent-primary text-sm"
+                                    aria-label="Glossary exclusion list"
                                 />
                             </div>
                         </div>
@@ -447,6 +591,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             }}
                             placeholder="e.g., Use a formal tone for dialogue. Translate character names literally."
                             className="w-full bg-dark-input p-2 rounded-lg border border-border-color focus:outline-none focus:ring-1 focus:ring-accent-primary text-sm"
+                            aria-label="Custom instructions"
                         />
                     </div>
                 </div>

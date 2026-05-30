@@ -1,6 +1,4 @@
-import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
-import { jsPDF } from 'jspdf';
-import { Project, Chapter } from '../types';
+import { Project } from '../types';
 
 export const exportService = {
   exportToMarkdown(project: Project) {
@@ -14,6 +12,8 @@ export const exportService = {
   },
 
   async exportToDocx(project: Project) {
+    const { Document, Packer, Paragraph, TextRun, HeadingLevel } = await import('docx');
+
     const doc = new Document({
       sections: [{
         children: [
@@ -26,7 +26,7 @@ export const exportService = {
               text: chapter.name,
               heading: HeadingLevel.HEADING_1,
             }),
-            ...chapter.translatedText.split('\n').filter(p => p.trim() !== '').map(para => 
+            ...chapter.translatedText.split('\n').filter(p => p.trim() !== '').map(para =>
               new Paragraph({
                 children: [new TextRun(para)],
               })
@@ -40,10 +40,12 @@ export const exportService = {
     this.downloadBlob(blob, `${project.name}.docx`);
   },
 
-  exportToPdf(project: Project) {
+  async exportToPdf(project: Project) {
+    const { jsPDF } = await import('jspdf');
+
     const doc = new jsPDF();
     let yPos = 20;
-    
+
     doc.setFontSize(20);
     doc.text(project.name, 20, yPos);
     yPos += 15;
@@ -57,10 +59,10 @@ export const exportService = {
       doc.setFontSize(16);
       doc.text(chapter.name, 20, yPos);
       yPos += 10;
-      
+
       doc.setFontSize(12);
       const textLines = doc.splitTextToSize(chapter.translatedText || chapter.sourceText, 170);
-      
+
       for (let i = 0; i < textLines.length; i++) {
         if (yPos > 280) {
           doc.addPage();
@@ -75,7 +77,7 @@ export const exportService = {
     doc.save(`${project.name}.pdf`);
   },
 
-  async exportToEpub(project: Project) {
+  async exportToEpub(_project: Project) {
     // Note: Standard EPUB generation libraries often rely on Node.js 'fs' module.
     // For a fully browser-based solution, we would need to implement EPUB generation 
     // using libraries like JSZip and custom XML templating.

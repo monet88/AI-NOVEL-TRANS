@@ -59,9 +59,10 @@ const ProjectItem: React.FC<ProjectItemProps> = React.memo(({ project, isActive,
                     onBlur={handleRename}
                     onKeyDown={(e) => e.key === 'Enter' && handleRename()}
                     className="bg-dark-input text-text-primary w-full px-1 rounded"
+                    aria-label="Project name"
                 />
             ) : (
-                <button onClick={onSelect} className="flex items-center space-x-2 truncate flex-grow">
+                <button onClick={onSelect} className="flex items-center space-x-2 truncate flex-grow" aria-label={`Open project ${project.name}`}>
                     <FolderIcon className="flex-shrink-0 w-4 h-4"/>
                     <span className="truncate font-semibold">{project.name}</span>
                 </button>
@@ -150,6 +151,7 @@ const ChapterItem: React.FC<ChapterItemProps> = React.memo(({
                     onBlur={handleRename}
                     onKeyDown={(e) => e.key === 'Enter' && handleRename()}
                     className="bg-dark-input text-text-primary w-full px-1 rounded"
+                    aria-label="Project name"
                 />
             ) : (
                 <button onClick={onSelect} className="flex items-center space-x-2 truncate flex-grow">
