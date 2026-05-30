@@ -8,8 +8,6 @@ import MagnifyingGlassIcon from '../icons/MagnifyingGlassIcon';
 import ArrowUpTrayIcon from '../icons/ArrowUpTrayIcon';
 import ArrowDownTrayIcon from '../icons/ArrowDownTrayIcon';
 import PlusIcon from '../icons/PlusIcon';
-import SparkleIcon from '../icons/SparkleIcon';
-import PencilIcon from '../icons/PencilIcon';
 import CheckCircleIcon from '../icons/CheckCircleIcon';
 import { useGlossaryContext } from '../../contexts';
 
@@ -74,7 +72,7 @@ const GlossaryView: React.FC<GlossaryViewProps> = ({ onClose }) => {
 
     const [validationError, setValidationError] = useState({ input: false, translation: false });
     
-    const [termToUpdate, setTermToUpdate] = useState<{ oldTranslation: string; newTranslation: string; matchType: MatchType } | null>(null);
+    const [termToUpdate, setTermToUpdate] = useState<{ oldTranslation: string; newTranslation: string; matchType: GlossaryTerm['matchType'] } | null>(null);
     const [originalTranslation, setOriginalTranslation] = useState('');
 
     const [editingTermId, setEditingTermId] = useState<string | null>(null);
@@ -263,12 +261,13 @@ const GlossaryView: React.FC<GlossaryViewProps> = ({ onClose }) => {
                      <div className="flex items-center space-x-2 flex-wrap justify-center">
                         <div className="relative">
                             <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary"/>
-                            <input 
+                            <input
                                 type="text"
                                 placeholder="Search..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="bg-dark-input border border-border-color rounded-md pl-10 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                                aria-label="Search glossary terms"
                             />
                         </div>
                         <div className="flex items-center bg-dark-hover rounded-md">
@@ -291,6 +290,7 @@ const GlossaryView: React.FC<GlossaryViewProps> = ({ onClose }) => {
                             onChange={handleFileImport}
                             accept=".json,.csv"
                             className="hidden"
+                            aria-label="Import glossary file"
                         />
                     </div>
                 </header>
@@ -311,30 +311,30 @@ const GlossaryView: React.FC<GlossaryViewProps> = ({ onClose }) => {
                                     <td><input type="text" placeholder="Enter data..." value={newTerm.input} onChange={e => {
                                         setNewTerm(p => ({...p, input: e.target.value}));
                                         if (validationError.input) setValidationError(p => ({...p, input: false}));
-                                    }} className={`w-full bg-dark-input p-2 rounded-md border focus:outline-none focus:ring-1 focus:ring-accent-primary ${validationError.input ? 'border-danger' : 'border-border-color'}`} /></td>
+                                    }} className={`w-full bg-dark-input p-2 rounded-md border focus:outline-none focus:ring-1 focus:ring-accent-primary ${validationError.input ? 'border-danger' : 'border-border-color'}`} aria-label="New glossary input term" /></td>
                                     <td><input type="text" placeholder="Enter data..." value={newTerm.translation} onChange={e => {
                                         setNewTerm(p => ({...p, translation: e.target.value}));
                                         if (validationError.translation) setValidationError(p => ({...p, translation: false}));
-                                    }} className={`w-full bg-dark-input p-2 rounded-md border focus:outline-none focus:ring-1 focus:ring-accent-primary ${validationError.translation ? 'border-danger' : 'border-border-color'}`} /></td>
+                                    }} className={`w-full bg-dark-input p-2 rounded-md border focus:outline-none focus:ring-1 focus:ring-accent-primary ${validationError.translation ? 'border-danger' : 'border-border-color'}`} aria-label="New glossary translation" /></td>
                                     <td>
-                                        <select value={newTerm.gender} onChange={e => setNewTerm(p => ({...p, gender: e.target.value as Gender}))} className="w-full bg-dark-input p-2 rounded-md border border-border-color focus:outline-none focus:ring-1 focus:ring-accent-primary">
+                                        <select value={newTerm.gender} onChange={e => setNewTerm(p => ({...p, gender: e.target.value as Gender}))} className="w-full bg-dark-input p-2 rounded-md border border-border-color focus:outline-none focus:ring-1 focus:ring-accent-primary" aria-label="New glossary gender">
                                             <option>Không xác định</option><option>Neutral</option><option>Male</option><option>Female</option>
                                         </select>
                                     </td>
                                     <td>
-                                        <select value={newTerm.matchType} onChange={e => setNewTerm(p => ({...p, matchType: e.target.value as MatchType}))} className="w-full bg-dark-input p-2 rounded-md border border-border-color focus:outline-none focus:ring-1 focus:ring-accent-primary">
+                                        <select value={newTerm.matchType} onChange={e => setNewTerm(p => ({...p, matchType: e.target.value as MatchType}))} className="w-full bg-dark-input p-2 rounded-md border border-border-color focus:outline-none focus:ring-1 focus:ring-accent-primary" aria-label="New glossary match type">
                                             <option value={MatchType.CaseInsensitive}>{MatchType.CaseInsensitive}</option>
                                             <option value={MatchType.Exact}>{MatchType.Exact}</option>
                                         </select>
                                     </td>
-                                    <td className="text-center"><button onClick={handleAddTerm} className="p-2 text-text-secondary hover:text-success"><PlusIcon className="w-5 h-5"/></button></td>
+                                    <td className="text-center"><button onClick={handleAddTerm} className="p-2 text-text-secondary hover:text-success" aria-label="Add glossary term"><PlusIcon className="w-5 h-5"/></button></td>
                                 </tr>
                                 {filteredGlossary.map((term) => (
                                     <tr key={term.id} className={`border-b border-border-color transition-colors duration-300 ${
                                         savingState[term.id] === 'saved' ? 'bg-success/10' :
                                         editingTermId === term.id ? 'bg-accent-primary/10' : 'hover:bg-dark-hover'
                                     }`}>
-                                        <td><input type="text" value={term.input} onChange={e => handleGlossaryChange(term.id, 'input', e.target.value)} onFocus={() => { setEditingTermId(term.id); setEditingTermInGlossaryViewId(term.id); }} onBlur={() => { setEditingTermId(null); setEditingTermInGlossaryViewId(null); }} className="w-full bg-transparent p-2 focus:bg-dark-input focus:outline-none focus:ring-1 focus:ring-accent-primary rounded-md" /></td>
+                                        <td><input type="text" value={term.input} onChange={e => handleGlossaryChange(term.id, 'input', e.target.value)} onFocus={() => { setEditingTermId(term.id); setEditingTermInGlossaryViewId(term.id); }} onBlur={() => { setEditingTermId(null); setEditingTermInGlossaryViewId(null); }} className="w-full bg-transparent p-2 focus:bg-dark-input focus:outline-none focus:ring-1 focus:ring-accent-primary rounded-md" aria-label={`Glossary input for ${term.input}`} /></td>
                                         <td>
                                             <input
                                                 type="text"
@@ -368,15 +368,16 @@ const GlossaryView: React.FC<GlossaryViewProps> = ({ onClose }) => {
                                                     setOriginalTranslation('');
                                                 }}
                                                 className="w-full bg-transparent p-2 focus:bg-dark-input focus:outline-none focus:ring-1 focus:ring-accent-primary rounded-md"
+                                                aria-label={`Glossary translation for ${term.input}`}
                                             />
                                         </td>
                                         <td>
-                                            <select value={term.gender} onChange={e => handleGlossaryChange(term.id, 'gender', e.target.value as Gender)} onFocus={() => { setEditingTermId(term.id); setEditingTermInGlossaryViewId(term.id); }} onBlur={() => { setEditingTermId(null); setEditingTermInGlossaryViewId(null); }} className="w-full bg-transparent p-2 focus:bg-dark-input focus:outline-none focus:ring-1 focus:ring-accent-primary rounded-md appearance-none text-center">
+                                            <select value={term.gender} onChange={e => handleGlossaryChange(term.id, 'gender', e.target.value as Gender)} onFocus={() => { setEditingTermId(term.id); setEditingTermInGlossaryViewId(term.id); }} onBlur={() => { setEditingTermId(null); setEditingTermInGlossaryViewId(null); }} className="w-full bg-transparent p-2 focus:bg-dark-input focus:outline-none focus:ring-1 focus:ring-accent-primary rounded-md appearance-none text-center" aria-label={`Glossary gender for ${term.input}`}>
                                                 <option>Không xác định</option><option>Neutral</option><option>Male</option><option>Female</option>
                                             </select>
                                         </td>
                                         <td>
-                                            <select value={term.matchType} onChange={e => handleGlossaryChange(term.id, 'matchType', e.target.value as MatchType)} onFocus={() => { setEditingTermId(term.id); setEditingTermInGlossaryViewId(term.id); }} onBlur={() => { setEditingTermId(null); setEditingTermInGlossaryViewId(null); }} className="w-full bg-transparent p-2 focus:bg-dark-input focus:outline-none focus:ring-1 focus:ring-accent-primary rounded-md appearance-none text-center">
+                                            <select value={term.matchType} onChange={e => handleGlossaryChange(term.id, 'matchType', e.target.value as GlossaryTerm['matchType'])} onFocus={() => { setEditingTermId(term.id); setEditingTermInGlossaryViewId(term.id); }} onBlur={() => { setEditingTermId(null); setEditingTermInGlossaryViewId(null); }} className="w-full bg-transparent p-2 focus:bg-dark-input focus:outline-none focus:ring-1 focus:ring-accent-primary rounded-md appearance-none text-center" aria-label={`Glossary match type for ${term.input}`}>
                                                 <option value={MatchType.CaseInsensitive}>{MatchType.CaseInsensitive}</option>
                                                 <option value={MatchType.Exact}>{MatchType.Exact}</option>
                                             </select>
@@ -396,7 +397,7 @@ const GlossaryView: React.FC<GlossaryViewProps> = ({ onClose }) => {
                                                         <CheckCircleIcon className="w-5 h-5 text-success animate-fade-in" role="status" aria-label="saved"/>
                                                     )}
                                                 </div>
-                                                <button onClick={() => removeGlossaryTerm(term.id)} className="p-2 text-text-secondary hover:text-danger"><TrashIcon className="w-5 h-5"/></button>
+                                                <button onClick={() => removeGlossaryTerm(term.id)} className="p-2 text-text-secondary hover:text-danger" aria-label={`Remove glossary term ${term.input}`}><TrashIcon className="w-5 h-5"/></button>
                                             </div>
                                         </td>
                                     </tr>

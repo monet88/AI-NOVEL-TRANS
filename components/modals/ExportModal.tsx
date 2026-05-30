@@ -24,7 +24,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose }) => {
       } else if (format === 'docx') {
         await exportService.exportToDocx(activeProject);
       } else if (format === 'pdf') {
-        exportService.exportToPdf(activeProject);
+        await exportService.exportToPdf(activeProject);
       } else if (format === 'epub') {
         await exportService.exportToEpub(activeProject);
       }
@@ -53,7 +53,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose }) => {
             </svg>
             Export Project
           </h2>
-          <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors focus:outline-none">
+          <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors focus:outline-none" aria-label="Close export modal">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>

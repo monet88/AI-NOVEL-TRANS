@@ -62,6 +62,7 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = ({ isOpen, onClose, in
                         value={findText}
                         onChange={e => setFindText(e.target.value)}
                         className="w-full bg-dark-input p-2 rounded-md border border-border-color focus:outline-none focus:ring-1 focus:ring-accent-primary"
+                        aria-label="Find text"
                     />
                 </div>
                  <div>
@@ -74,6 +75,7 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = ({ isOpen, onClose, in
                         value={replaceText}
                         onChange={e => setReplaceText(e.target.value)}
                         className="w-full bg-dark-input p-2 rounded-md border border-border-color focus:outline-none focus:ring-1 focus:ring-accent-primary"
+                        aria-label="Replace text"
                     />
                 </div>
                 <div className="flex justify-between items-center">
@@ -84,6 +86,7 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = ({ isOpen, onClose, in
                             checked={caseSensitive}
                             onChange={e => setCaseSensitive(e.target.checked)}
                             className="h-4 w-4 rounded-md bg-dark-hover border-border-color text-accent-primary focus:ring-accent-primary"
+                            aria-label="Case sensitive"
                         />
                         <label htmlFor="case-sensitive" className="ml-2 text-sm text-text-primary">
                             Case Sensitive

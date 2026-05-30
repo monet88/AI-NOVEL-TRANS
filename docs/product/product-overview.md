@@ -3,9 +3,9 @@
 ## What
 
 AI Novel Weaver is a browser-based translation workbench for long-form fiction.
-It pairs human editors with LLM providers (Gemini, OpenAI, DeepSeek) to produce
-genre-aware Vietnamese translations of English novels — primarily wuxia, xianxia,
-and modern urban fiction.
+It pairs human editors with AI providers (Gemini, OpenAI, DeepSeek, Local MT)
+to produce genre-aware Vietnamese translations of English novels — primarily wuxia,
+xianxia, and modern urban fiction.
 
 ## Target Users
 
@@ -19,10 +19,10 @@ and modern urban fiction.
    martial arts, cultivation, and modern urban terminology.
 2. **Glossary-first workflow** — extract, review, and enforce terminology before
    translating, ensuring consistency across hundreds of chapters.
-3. **Multi-provider flexibility** — switch between Gemini, OpenAI, and DeepSeek
-   without changing workflow.
+3. **Multi-provider flexibility** — switch between Gemini, OpenAI, DeepSeek,
+   and a local MT server without changing workflow.
 4. **Offline-capable storage** — all project data persists in IndexedDB; no
-   server required for the core editing loop.
+   hosted server required for the core editing loop.
 5. **Batch processing** — translate or extract glossary for multiple chapters in
    one operation with progress tracking.
 
@@ -37,7 +37,7 @@ and modern urban fiction.
 | Styling | Tailwind CSS (CDN) |
 | Validation | Zod |
 | Persistence | IndexedDB via `idb` |
-| AI Providers | Gemini (`@google/genai`), OpenAI-compatible, DeepSeek |
+| AI Providers | Gemini (`@google/genai`), OpenAI-compatible, DeepSeek, Local MT (`/api/translate`) |
 | Export | `docx`, `jspdf` |
 
 ## Current State
@@ -45,9 +45,10 @@ and modern urban fiction.
 - Core translation loop functional (single + batch)
 - Glossary management operational
 - Export to DOCX/PDF working
-- No authentication, no backend server
-- No test suite installed
-- Planned: offline MT model via CTranslate2 + FastAPI (see `plans/260529-2312-en-vi-offline-mt-pipeline/`)
+- Optional local MT provider integration implemented for local FastAPI-compatible servers
+- No authentication, no hosted backend server
+- Vitest suite installed for schema/settings/service contract coverage
+- Offline MT backend/model pipeline remains tracked in `plans/260529-2312-en-vi-offline-mt-pipeline/`
 
 ## Non-Goals (Current Scope)
 

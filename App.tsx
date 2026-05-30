@@ -53,6 +53,7 @@ const AppContent: React.FC = () => {
         onChange={handleImportProject}
         accept=".json"
         className="hidden"
+        aria-label="Import project JSON file"
       />
 
       {view === 'dashboard' ? (

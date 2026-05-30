@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import type { Chapter, GlossaryTerm } from '../../types';
+import type { GlossaryTerm } from '../../types';
 import XMarkIcon from '../icons/XMarkIcon';
 import { useProjectContext, useUIContext, useGlossaryContext } from '../../contexts';
+import { testLocalMTFallbackProviderConnection } from '../../services/aiService';
 import { BatchOrchestrator, BatchChapter, ChapterStatus, BatchProcessState } from '../../services/batchOrchestrator';
 import BatchChapterRow from '../workspace/BatchChapterRow';
 import InteractiveGlossaryApproval from '../workspace/InteractiveGlossaryApproval';
@@ -67,7 +68,21 @@ const BatchExtractModal: React.FC = () => {
 
   const handleStartBatchExtract = async () => {
     if (!project) return;
-    const { aiProvider, openaiApiKey, deepseekApiKey } = settings;
+    const { aiProvider, openaiApiKey, deepseekApiKey, localMtGlossaryProvider } = settings;
+
+    if (aiProvider === 'local-mt') {
+        if (localMtGlossaryProvider === 'none') {
+            alert('Local MT offline mode cannot extract glossary terms without a fallback LLM provider. Choose Gemini, OpenAI, or DeepSeek in AI Settings.');
+            return;
+        }
+
+        const fallbackHealth = await testLocalMTFallbackProviderConnection(settings);
+        if (!fallbackHealth.success) {
+            alert(`${fallbackHealth.message} Configure the fallback provider in AI Settings and try again.`);
+            return;
+        }
+    }
+
     if ((aiProvider === 'openai' && !openaiApiKey) || (aiProvider === 'deepseek' && !deepseekApiKey)) {
         const providerName = aiProvider.charAt(0).toUpperCase() + aiProvider.slice(1);
         alert(`${providerName} API key is missing. Please add it in the AI Settings before starting a batch job.`);
@@ -98,12 +113,12 @@ const BatchExtractModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-dark-panel rounded-xl shadow-2xl w-full h-full sm:max-w-2xl sm:h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
+      <div className="bg-dark-panel rounded-xl shadow-2xl w-full h-full sm:max-w-2xl sm:h-[70vh] flex flex-col" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="batch-extract-title">
         <header className="p-4 border-b border-border-color flex justify-between items-center flex-shrink-0">
           <div className="flex items-center space-x-2">
-            <h2 className="text-lg font-bold">Batch Extract Glossary Terms</h2>
+            <h2 id="batch-extract-title" className="text-lg font-bold">Batch Extract Glossary Terms</h2>
           </div>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-dark-hover" disabled={isExtracting}>
+          <button onClick={onClose} className="p-1 rounded-full hover:bg-dark-hover" disabled={isExtracting} aria-label="Close batch extract">
             <XMarkIcon className="w-6 h-6 text-text-secondary"/>
           </button>
         </header>

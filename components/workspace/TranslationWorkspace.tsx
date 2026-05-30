@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import type { GlossaryTerm } from '../../types';
 import { LANGUAGES } from '../../constants';
-import { translateTextStream, extractGlossaryTerms } from '../../services/aiService';
+import { testLocalMTConnection, testLocalMTFallbackProviderConnection, translateTextStream, extractGlossaryTerms } from '../../services/aiService';
 import { generateGlossaryUsageReport } from '../../services/utils';
 import ArrowsRightLeftIcon from '../icons/ArrowsRightLeftIcon';
 import SettingsDropdown from '../layout/SettingsDropdown';
@@ -13,7 +13,6 @@ import ArrowsPointingInIcon from '../icons/ArrowsPointingInIcon';
 import GlossaryTermPopover from '../glossary/GlossaryTermPopover';
 import PencilIcon from '../icons/PencilIcon';
 import GlossaryTermTooltip from '../glossary/GlossaryTermTooltip';
-import WandIcon from '../icons/WandIcon';
 import { useProjectContext, useUIContext, useGlossaryContext } from '../../contexts';
 import TranslationLogPanel from './TranslationLogPanel';
 import CommandLineIcon from '../icons/CommandLineIcon';
@@ -94,7 +93,6 @@ const TranslationWorkspace: React.FC = () => {
     setIsBatchTranslateOpen,
     setIsBatchExtractOpen,
     setFindReplaceState,
-    isSettingsModalOpen,
     setIsSettingsModalOpen,
     logs,
     addLog,
@@ -192,6 +190,38 @@ const TranslationWorkspace: React.FC = () => {
         return;
     }
 
+    if (aiProvider === 'local-mt') {
+        const fallbackProvider = settingsRef.current.localMtGlossaryProvider;
+        if (
+            settingsRef.current.localMtMode === 'hybrid' &&
+            settingsRef.current.localMtHybridTarget === 'client' &&
+            fallbackProvider === 'none'
+        ) {
+            const errorMsg = 'Client-side hybrid Local MT requires a fallback LLM provider. Configure one in AI Settings and try again.';
+            addLog(`ERROR: ${errorMsg}`);
+            alert(errorMsg);
+            return;
+        }
+
+        if (fallbackProvider !== 'none') {
+            const fallbackHealth = await testLocalMTFallbackProviderConnection(settingsRef.current);
+            if (!fallbackHealth.success) {
+                const errorMsg = `${fallbackHealth.message} Configure the fallback provider in AI Settings and try again.`;
+                addLog(`ERROR: ${errorMsg}`);
+                alert(errorMsg);
+                return;
+            }
+        }
+
+        const health = await testLocalMTConnection(settingsRef.current);
+        if (!health.success) {
+            const errorMsg = `${health.message} Start the local MT server at ${settingsRef.current.localMtEndpoint} and try again.`;
+            addLog(`ERROR: ${errorMsg}`);
+            alert(errorMsg);
+            return;
+        }
+    }
+
     setIsTranslating(true);
     setTranslatedText('');
     let finalTranslation = '';
@@ -208,34 +238,41 @@ const TranslationWorkspace: React.FC = () => {
              return;
         }
 
-        setTranslationProgress('Step 1/2: Analyzing for glossary terms...');
-        addLog(`[${activeChapter.name}] Step 1: Extracting glossary terms...`);
-        const extracted = await extractGlossaryTerms(
-            trimmedSource,
-            targetLang,
-            runSettings.glossaryExtractionInstructions,
-            runSettings.exclusionList,
-            runSettings
-        );
+        const shouldExtractGlossary = runSettings.aiProvider !== 'local-mt' || runSettings.localMtGlossaryProvider !== 'none';
 
-        const existingInputs = new Set(runSettings.glossary.map(t => t.input.toLowerCase()));
-        const newTerms = extracted.filter(term => !existingInputs.has(term.input.toLowerCase()));
-        addLog(`[${activeChapter.name}] Found ${newTerms.length} new terms for review.`);
-        
-        if (newTerms.length > 0) {
-            setTranslationProgress('Step 1/2: Please review suggested terms...');
-            const termsToAdd = await handleStartGlossaryReview(newTerms);
-            if (termsToAdd.length > 0) {
-              addLog(`[${activeChapter.name}] Added ${termsToAdd.length} new terms from review.`);
-              // This updates the global settings state for future runs.
-              handleAddReviewedTerms(termsToAdd);
-              
-              // FIX: Immediately update the local settings for the *current* translation run.
-              const termsToAddWithTempIds: GlossaryTerm[] = termsToAdd.map(t => ({...t, id: `temp-${t.input}-${Math.random()}`}));
-              runSettings.glossary = [...runSettings.glossary, ...termsToAddWithTempIds];
-            } else {
-              addLog(`[${activeChapter.name}] No terms added from review.`);
+        if (shouldExtractGlossary) {
+            setTranslationProgress('Step 1/2: Analyzing for glossary terms...');
+            addLog(`[${activeChapter.name}] Step 1: Extracting glossary terms...`);
+            const extracted = await extractGlossaryTerms(
+                trimmedSource,
+                targetLang,
+                runSettings.glossaryExtractionInstructions,
+                runSettings.exclusionList,
+                runSettings
+            );
+
+            const existingInputs = new Set(runSettings.glossary.map(t => t.input.toLowerCase()));
+            const newTerms = extracted.filter(term => !existingInputs.has(term.input.toLowerCase()));
+            addLog(`[${activeChapter.name}] Found ${newTerms.length} new terms for review.`);
+
+            if (newTerms.length > 0) {
+                setTranslationProgress('Step 1/2: Please review suggested terms...');
+                const termsToAdd = await handleStartGlossaryReview(newTerms);
+                if (termsToAdd.length > 0) {
+                  addLog(`[${activeChapter.name}] Added ${termsToAdd.length} new terms from review.`);
+                  // This updates the global settings state for future runs.
+                  handleAddReviewedTerms(termsToAdd);
+
+                  // FIX: Immediately update the local settings for the *current* translation run.
+                  const termsToAddWithTempIds: GlossaryTerm[] = termsToAdd.map(t => ({...t, id: `temp-${t.input}-${Math.random()}`}));
+                  runSettings.glossary = [...runSettings.glossary, ...termsToAddWithTempIds];
+                } else {
+                  addLog(`[${activeChapter.name}] No terms added from review.`);
+                }
             }
+        } else {
+            setTranslationProgress('Step 1/2: Skipping glossary extraction for offline local MT...');
+            addLog(`[${activeChapter.name}] Step 1: Glossary extraction skipped for pure offline local MT.`);
         }
 
         setTranslationProgress('Step 2/2: Translating text...');
@@ -424,6 +461,7 @@ const TranslationWorkspace: React.FC = () => {
                   className="w-full h-full p-4 bg-transparent resize-none focus:outline-none text-text-primary leading-relaxed"
                   placeholder="Enter source text..."
                   autoFocus
+                  aria-label="Source text"
                 />
             ) : (
                 <div className="w-full h-full p-4 text-text-primary leading-relaxed whitespace-pre-wrap overflow-y-auto custom-scrollbar">
@@ -462,6 +500,7 @@ const TranslationWorkspace: React.FC = () => {
                 className="w-full h-full p-4 bg-transparent resize-none focus:outline-none text-text-primary leading-relaxed"
                 placeholder="Translation will appear here..."
                 autoFocus={isTargetEditing}
+                aria-label="Translated text"
               />
             ) : (
               <div
@@ -558,12 +597,13 @@ const TranslationWorkspace: React.FC = () => {
 
       {showGlossaryReport && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="bg-dark-panel rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-dark-panel rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="glossary-usage-report-title">
             <div className="p-4 border-b border-border-color flex justify-between items-center">
-              <h2 className="text-xl font-bold text-text-primary">Glossary Usage Report</h2>
+              <h2 id="glossary-usage-report-title" className="text-xl font-bold text-text-primary">Glossary Usage Report</h2>
               <button
                 onClick={() => setShowGlossaryReport(false)}
                 className="p-2 rounded-md hover:bg-dark-hover text-text-secondary"
+                aria-label="Close glossary usage report"
               >
                 <XMarkIcon className="w-5 h-5" />
               </button>

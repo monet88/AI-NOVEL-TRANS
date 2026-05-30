@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import type { TranslationSettings, GlossaryTerm, MatchType } from '../types';
+import type { TranslationSettings, GlossaryTerm } from '../types';
 import { useSettings } from '../hooks/useSettings';
 import { useProjectContext } from './ProjectContext';
 
@@ -8,7 +8,7 @@ interface GlossaryContextType {
   editingTermInGlossaryViewId: string | null;
   handleSettingsChange: (updater: React.SetStateAction<TranslationSettings>) => void;
   handleGlossaryTermUpdate: (updatedTerm: GlossaryTerm) => void;
-  handleGlossaryBulkUpdate: (oldTranslation: string, newTranslation: string, matchType: MatchType) => void;
+  handleGlossaryBulkUpdate: (oldTranslation: string, newTranslation: string, matchType: GlossaryTerm['matchType']) => void;
   setEditingTermInGlossaryViewId: (id: string | null) => void;
   // Glossary Review State (Moved from useModals to GlossaryContext)
   glossaryReviewState: {
@@ -49,7 +49,7 @@ export const GlossaryProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const { activeProject, handleUpdateChapters } = useProjectContext();
 
-  const handleGlossaryBulkUpdate = (oldTranslation: string, newTranslation: string, matchType: MatchType) => {
+  const handleGlossaryBulkUpdate = (oldTranslation: string, newTranslation: string, matchType: GlossaryTerm['matchType']) => {
     if (!activeProject) return;
     const chaptersToUpdate = activeProject.chapters.map(chapter => {
         const flags = matchType === 'Case-Insensitive' ? 'gi' : 'g';

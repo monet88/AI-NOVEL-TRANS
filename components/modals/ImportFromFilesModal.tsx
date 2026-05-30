@@ -133,6 +133,7 @@ const ImportFromFilesModal: React.FC<ImportFromFilesModalProps> = ({ onClose, on
               onChange={e => handleFiles(e.target.files)}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               disabled={isLoading}
+              aria-label="Import chapter files"
             />
             <DocumentTextIcon className="mx-auto h-12 w-12 text-text-secondary" />
             <p className="mt-2 text-sm text-text-primary">Drag and drop files here</p>

@@ -95,11 +95,11 @@ const InteractiveGlossaryApproval: React.FC<InteractiveGlossaryApprovalProps> = 
              <table className="w-full text-sm text-left">
                 <thead className="text-text-secondary sticky top-0 bg-dark-panel border-b border-border-color z-10">
                   <tr>
-                    <th className="p-2 w-8"></th>
+                    <th className="p-2 w-8">Select</th>
                     <th className="p-2">Input Term</th>
                     <th className="p-2">Suggested Translation</th>
                     <th className="p-2">Gender</th>
-                    <th className="p-2 w-10"></th>
+                    <th className="p-2 w-10">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -111,35 +111,39 @@ const InteractiveGlossaryApproval: React.FC<InteractiveGlossaryApprovalProps> = 
                           checked={selectedReviewIds.has(term.reviewId)}
                           onChange={() => handleToggleSelection(term.reviewId)}
                           className="h-4 w-4 rounded bg-dark-bg border-border-color text-accent-primary focus:ring-accent-primary"
+                          aria-label="Select glossary term"
                         />
                       </td>
                       <td className="p-1">
-                        <input 
-                            type="text" 
-                            value={term.input} 
-                            onChange={e => handleTermChange(term.reviewId, 'input', e.target.value)} 
-                            className="w-full bg-transparent p-1 px-2 focus:bg-dark-panel focus:outline-none focus:ring-1 focus:ring-accent-primary rounded" 
+                        <input
+                            type="text"
+                            value={term.input}
+                            onChange={e => handleTermChange(term.reviewId, 'input', e.target.value)}
+                            className="w-full bg-transparent p-1 px-2 focus:bg-dark-panel focus:outline-none focus:ring-1 focus:ring-accent-primary rounded"
+                            aria-label="Glossary input term"
                         />
                       </td>
                       <td className="p-1">
-                        <input 
-                            type="text" 
-                            value={term.translation} 
-                            onChange={e => handleTermChange(term.reviewId, 'translation', e.target.value)} 
-                            className="w-full bg-transparent p-1 px-2 focus:bg-dark-panel focus:outline-none focus:ring-1 focus:ring-accent-primary rounded" 
+                        <input
+                            type="text"
+                            value={term.translation}
+                            onChange={e => handleTermChange(term.reviewId, 'translation', e.target.value)}
+                            className="w-full bg-transparent p-1 px-2 focus:bg-dark-panel focus:outline-none focus:ring-1 focus:ring-accent-primary rounded"
+                            aria-label="Glossary translation"
                         />
                       </td>
                       <td className="p-1">
-                        <select 
-                            value={term.gender} 
-                            onChange={e => handleTermChange(term.reviewId, 'gender', e.target.value as Gender)} 
+                        <select
+                            value={term.gender}
+                            onChange={e => handleTermChange(term.reviewId, 'gender', e.target.value as Gender)}
                             className="w-full bg-transparent p-1 px-2 focus:bg-dark-panel focus:outline-none focus:ring-1 focus:ring-accent-primary rounded appearance-none"
+                            aria-label={`Gender for ${term.input}`}
                         >
                           <option>Neutral</option><option>Male</option><option>Female</option>
                         </select>
                       </td>
                       <td className="p-1 text-center">
-                        <button onClick={() => handleDeleteTerm(term.reviewId)} className="p-1.5 text-text-muted hover:text-danger hover:bg-danger/10 rounded-md transition-colors">
+                        <button onClick={() => handleDeleteTerm(term.reviewId)} className="p-1.5 text-text-muted hover:text-danger hover:bg-danger/10 rounded-md transition-colors" aria-label={`Delete term ${term.input}`}>
                             <TrashIcon className="w-4 h-4"/>
                         </button>
                       </td>

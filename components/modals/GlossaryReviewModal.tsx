@@ -110,12 +110,12 @@ const GlossaryReviewModal: React.FC<GlossaryReviewModalProps> = ({ extractedTerm
               <table className="w-full text-sm text-left min-w-[640px]">
                 <thead className="text-text-secondary sticky top-0 bg-dark-panel">
                   <tr>
-                    <th className="p-2 w-8"></th>
+                    <th className="p-2 w-8">Select</th>
                     <th className="p-2">Input</th>
                     <th className="p-2">Translation</th>
                     <th className="p-2">Gender</th>
                     <th className="p-2">Match</th>
-                    <th className="p-2"></th>
+                    <th className="p-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -127,22 +127,23 @@ const GlossaryReviewModal: React.FC<GlossaryReviewModalProps> = ({ extractedTerm
                           checked={selectedReviewIds.has(term.reviewId)}
                           onChange={() => handleToggleSelection(term.reviewId)}
                           className="h-4 w-4 rounded-md bg-dark-hover border-border-color text-accent-primary focus:ring-accent-primary"
+                          aria-label="Select glossary term"
                         />
                       </td>
-                      <td><input type="text" value={term.input} onChange={e => handleTermChange(term.reviewId, 'input', e.target.value)} className="w-full bg-transparent p-2 focus:bg-dark-input focus:outline-none focus:ring-1 focus:ring-accent-primary rounded-md" /></td>
-                      <td><input type="text" value={term.translation} onChange={e => handleTermChange(term.reviewId, 'translation', e.target.value)} className="w-full bg-transparent p-2 focus:bg-dark-input focus:outline-none focus:ring-1 focus:ring-accent-primary rounded-md" /></td>
+                      <td><input type="text" value={term.input} onChange={e => handleTermChange(term.reviewId, 'input', e.target.value)} className="w-full bg-transparent p-2 focus:bg-dark-input focus:outline-none focus:ring-1 focus:ring-accent-primary rounded-md" aria-label="Glossary input term" /></td>
+                      <td><input type="text" value={term.translation} onChange={e => handleTermChange(term.reviewId, 'translation', e.target.value)} className="w-full bg-transparent p-2 focus:bg-dark-input focus:outline-none focus:ring-1 focus:ring-accent-primary rounded-md" aria-label="Glossary translation" /></td>
                       <td>
-                        <select value={term.gender} onChange={e => handleTermChange(term.reviewId, 'gender', e.target.value as Gender)} className="w-full bg-transparent p-2 focus:bg-dark-input focus:outline-none focus:ring-1 focus:ring-accent-primary rounded-md appearance-none">
+                        <select value={term.gender} onChange={e => handleTermChange(term.reviewId, 'gender', e.target.value as Gender)} className="w-full bg-transparent p-2 focus:bg-dark-input focus:outline-none focus:ring-1 focus:ring-accent-primary rounded-md appearance-none" aria-label={`Gender for ${term.input}`}>
                           <option>Không xác định</option><option>Neutral</option><option>Male</option><option>Female</option>
                         </select>
                       </td>
                       <td>
-                        <select value={term.matchType} onChange={e => handleTermChange(term.reviewId, 'matchType', e.target.value as MatchType)} className="w-full bg-transparent p-2 focus:bg-dark-input focus:outline-none focus:ring-1 focus:ring-accent-primary rounded-md appearance-none">
+                        <select value={term.matchType} onChange={e => handleTermChange(term.reviewId, 'matchType', e.target.value as MatchType)} className="w-full bg-transparent p-2 focus:bg-dark-input focus:outline-none focus:ring-1 focus:ring-accent-primary rounded-md appearance-none" aria-label={`Match type for ${term.input}`}>
                           <option value={MatchType.CaseInsensitive}>{MatchType.CaseInsensitive}</option>
                           <option value={MatchType.Exact}>{MatchType.Exact}</option>
                         </select>
                       </td>
-                      <td className="text-center"><button onClick={() => handleDeleteTerm(term.reviewId)} className="p-2 text-text-secondary hover:text-danger"><TrashIcon className="w-5 h-5"/></button></td>
+                      <td className="text-center"><button onClick={() => handleDeleteTerm(term.reviewId)} className="p-2 text-text-secondary hover:text-danger" aria-label={`Delete term ${term.input}`}><TrashIcon className="w-5 h-5"/></button></td>
                     </tr>
                   ))}
                 </tbody>
