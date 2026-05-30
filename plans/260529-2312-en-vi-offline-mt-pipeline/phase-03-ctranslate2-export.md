@@ -13,6 +13,8 @@ dependencies: [2]
 
 Convert fine-tuned model to CTranslate2 INT8 format. Validate quality preserved. Upload to HuggingFace Hub and deploy Gradio demo on HF Spaces.
 
+Execution mode for this phase: Claude runs conversion, benchmark, and Hugging Face CLI publish commands directly.
+
 ## Requirements
 
 - Functional: CTranslate2 INT8 model with BLEU degradation ≤ 1 point
@@ -24,7 +26,7 @@ Convert fine-tuned model to CTranslate2 INT8 format. Validate quality preserved.
 ```
 Fine-tuned opus-mt-en-vi (FP32)
   │
-  ├─ [Step 1] ct2-opus-mt-converter → INT8
+  ├─ [Step 1] ct2-transformers-converter --model_type marian → INT8
   │   Model size: ~80MB
   │
   ├─ [Step 2] Validate (BLEU diff ≤ 1)
@@ -43,8 +45,10 @@ Fine-tuned opus-mt-en-vi (FP32)
 ## Implementation Steps
 
 1. **Convert to CTranslate2 INT8**
+   - Fine-tuned model is saved in HuggingFace MarianMT format, so use the generic Transformers converter as primary path.
    ```bash
-   ct2-opus-mt-converter --model_dir ./opus-mt-en-vi-finetuned \
+   ct2-transformers-converter --model_type marian \
+     --model_name_or_path ./opus-mt-en-vi-finetuned \
      --output_dir ./ct2-en-vi \
      --quantization int8
    ```
@@ -60,19 +64,24 @@ Fine-tuned opus-mt-en-vi (FP32)
 
 4. **Upload to HuggingFace Hub**
    - CT2 model files + tokenizer
+   - Load write token from `HF_TOKEN` environment variable; never hardcode token in script
+   - Push to **private** model repo first for internal validation
+   - Switch visibility to public only after Phase 6 quality gate passes (BLEU ≥ 30 + full val benchmark)
    - Model card with training details
 
 5. **Deploy Gradio demo** (`demo/app.py`)
-   - Load CT2 model + SentencePiece tokenizer
+   - Load CT2 model + HuggingFace `MarianTokenizer` (or exact preprocessing exported with the converted model); do not rely on raw SentencePiece-only preprocessing
    - Interface: text input → translated output + inference time
-   - Deploy to HF Spaces (free CPU tier)
+   - Free CPU tier is single-user demo only: set `max_batch_size=1`, `max_input_length=512`, greedy decoding (`beam_size=1`) to control memory
+   - Deploy to HF Spaces after local FastAPI path works
 
 ## Success Criteria
 
 - [ ] Model converted to CTranslate2 INT8
 - [ ] BLEU degradation ≤ 1 point vs FP32
 - [ ] Inference ≥ 50 tok/s (single thread)
-- [ ] Model on HuggingFace Hub
+- [ ] Model pushed to private HuggingFace Hub repo
+- [ ] Model visibility switched public only after Phase 6 gate passes
 - [ ] Gradio demo live on HF Spaces
 
 ## Risk Assessment
@@ -80,4 +89,5 @@ Fine-tuned opus-mt-en-vi (FP32)
 | Risk | Mitigation |
 |------|-----------|
 | INT8 quality loss > 1 BLEU | Try INT8_FLOAT16 quantization |
-| HF Spaces too slow | Greedy decoding (beam_size=1) for demo |
+| HF token leaked | Load from `HF_TOKEN`; never paste token into scripts/notebooks |
+| HF Spaces too slow or OOM | Treat free tier as single-user demo; cap input length, batch size, and use greedy decoding (`beam_size=1`) |
