@@ -12,12 +12,13 @@ import { ConfirmModal } from '../modals';
 
 interface ProjectCardProps {
     project: Project;
+    index: number;
     onOpen: () => void;
     onRename: (newName: string) => void;
     onDelete: () => void;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, onOpen, onRename, onDelete }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, index, onOpen, onRename, onDelete }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(project.name);
@@ -52,8 +53,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onOpen, onRename, on
     };
 
     return (
-        <div className="bg-dark-sidebar rounded-lg shadow-lg flex flex-col transition-all duration-200 hover:shadow-2xl hover:-translate-y-1">
-            <div className="p-5 flex-grow">
+        <div className={`bg-dark-panel border border-border-color/30 rounded-xl shadow-lg flex flex-col transition-all duration-300 hover:shadow-2xl hover:border-accent-primary/50 hover:-translate-y-1 group animate-fade-in-up stagger-${(index % 5) + 1}`}>
+            <div className="p-6 flex-grow">
                  {isEditing ? (
                     <input
                         ref={inputRef}
@@ -73,10 +74,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onOpen, onRename, on
                     <span>{project.chapters.length} {project.chapters.length === 1 ? 'Chapter' : 'Chapters'}</span>
                 </div>
             </div>
-            <div className="border-t border-border-color p-3 flex justify-between items-center">
+            <div className="border-t border-border-color/30 p-4 flex justify-between items-center bg-dark-sidebar/50 rounded-b-xl">
                 <button 
                     onClick={onOpen}
-                    className="text-sm font-semibold text-accent-primary hover:text-accent-primary-hover transition-all transform hover:scale-105"
+                    className="text-sm font-semibold text-accent-primary hover:text-accent-primary-hover transition-all group-hover:translate-x-1"
                 >
                     Open Project
                 </button>
@@ -85,7 +86,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onOpen, onRename, on
                         <EllipsisVerticalIcon className="w-5 h-5 text-text-secondary" />
                     </button>
                     {isMenuOpen && (
-                        <div className="absolute right-0 bottom-full mb-2 w-36 bg-dark-panel rounded-md shadow-xl z-10 border border-border-color animate-fade-in">
+                        <div className="absolute right-0 bottom-full mb-2 w-36 bg-dark-panel rounded-lg shadow-2xl z-10 border border-border-color/50 animate-fade-in">
                            <button 
                                 onClick={() => { setIsEditing(true); setIsMenuOpen(false); }} 
                                 className="w-full text-left flex items-center space-x-2 px-3 py-2 text-sm text-text-primary hover:bg-dark-hover"
@@ -130,8 +131,8 @@ const ProjectSelectionView: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col bg-dark-bg overflow-y-auto">
-        <header className="bg-dark-sidebar border-b border-border-color p-4 flex justify-between items-center shadow-md">
-            <h1 className="text-xl font-bold text-text-primary">AI Novel Weaver</h1>
+        <header className="bg-dark-panel border-b border-border-color/30 p-6 flex justify-between items-center shadow-sm">
+            <h1 className="text-xl font-bold text-text-primary tracking-tight">AI Novel Weaver</h1>
         </header>
         <main className="flex-1 p-6 md:p-8">
             <div className="max-w-7xl mx-auto">
@@ -156,10 +157,11 @@ const ProjectSelectionView: React.FC = () => {
                 </div>
                 {projects.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {projects.map(project => (
+                        {projects.map((project, index) => (
                             <ProjectCard 
                                 key={project.id} 
                                 project={project}
+                                index={index}
                                 onOpen={() => handleOpenProject(project.id)}
                                 onRename={(newName) => handleRenameProject(project.id, newName)}
                                 onDelete={() => setProjectToDelete(project)}
@@ -167,7 +169,7 @@ const ProjectSelectionView: React.FC = () => {
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-20 border-2 border-dashed border-border-color rounded-lg">
+                    <div className="text-center py-20 border-2 border-dashed border-border-color/50 rounded-xl">
                         <h3 className="text-lg font-semibold text-text-primary">No projects yet</h3>
                         <p className="text-text-secondary mt-2">Create a new project to get started.</p>
                     </div>

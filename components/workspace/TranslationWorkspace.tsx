@@ -65,7 +65,7 @@ const SyncableParagraph: React.FC<SyncableParagraphProps> = ({
 
   return (
     <div 
-      className={`p-2 transition-colors duration-200 border-l-2 rounded-sm ${isHighlighted ? 'bg-accent-primary/10 border-accent-primary' : 'hover:bg-dark-hover border-transparent'}`}
+      className={`px-4 py-3 my-1 transition-all duration-200 border-l-4 rounded-r-lg ${isHighlighted ? 'bg-accent-primary/10 border-accent-secondary shadow-sm text-text-primary' : 'hover:bg-dark-hover/30 border-transparent text-text-secondary'}`}
       onMouseEnter={() => onMouseEnter(index)}
       onMouseLeave={onMouseLeave}
     >
@@ -355,7 +355,7 @@ const TranslationWorkspace: React.FC = () => {
   }
 
   const renderToolbar = (side: 'source' | 'target') => (
-     <div className="flex justify-between items-center px-4 py-2 border-b border-border-color bg-dark-sidebar">
+     <div className="flex justify-between items-center px-4 py-3 border-b border-border-color/30 bg-dark-panel">
         <div className="flex items-center space-x-2">
             <select
                 value={side === 'source' ? sourceLang : targetLang}
@@ -400,7 +400,7 @@ const TranslationWorkspace: React.FC = () => {
 
   return (
     <main className="flex-1 flex flex-col bg-dark-bg overflow-hidden">
-      <div className="flex-shrink-0 flex justify-between items-center px-4 py-2 border-b border-border-color bg-dark-sidebar shadow-sm">
+      <div className="flex-shrink-0 flex justify-between items-center px-6 py-3 border-b border-border-color/30 bg-dark-panel shadow-sm">
         <div className="flex items-center space-x-4">
             <h2 className="text-lg font-bold text-text-primary truncate pr-4">{activeProject.name} / {activeChapter.name}</h2>
             <div className="flex items-center space-x-1 flex-wrap">
@@ -450,8 +450,8 @@ const TranslationWorkspace: React.FC = () => {
         </div>
       </div>
       
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-px bg-border-color overflow-hidden">
-        <div className={`flex flex-col bg-dark-bg min-h-0 ${viewMode === 'target-only' ? 'hidden' : ''} ${viewMode !== 'side-by-side' ? 'col-span-2' : ''}`}>
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 p-4 md:p-6 bg-dark-bg overflow-hidden">
+        <div className={`flex flex-col bg-dark-panel rounded-xl shadow-sm border border-border-color/50 overflow-hidden min-h-0 ${viewMode === 'target-only' ? 'hidden' : ''} ${viewMode !== 'side-by-side' ? 'col-span-2' : ''}`}>
           {renderToolbar('source')}
           <div className="relative flex-1 min-h-0">
             {isSourceEditing ? (
@@ -490,7 +490,7 @@ const TranslationWorkspace: React.FC = () => {
             </div>
         </div>
 
-        <div className={`flex flex-col bg-dark-bg min-h-0 ${viewMode === 'source-only' ? 'hidden' : ''} ${viewMode !== 'side-by-side' ? 'col-span-2' : ''}`}>
+        <div className={`flex flex-col bg-dark-panel rounded-xl shadow-sm border border-border-color/50 overflow-hidden min-h-0 ${viewMode === 'source-only' ? 'hidden' : ''} ${viewMode !== 'side-by-side' ? 'col-span-2' : ''}`}>
            {renderToolbar('target')}
            <div className="relative flex-1 min-h-0">
             {isTargetEditing ? (
@@ -540,7 +540,7 @@ const TranslationWorkspace: React.FC = () => {
       
       {isLogPanelOpen && <TranslationLogPanel logs={logs} onClear={clearLogs} />}
 
-      <div className="relative flex-shrink-0 p-3 border-t border-border-color bg-dark-sidebar flex flex-col justify-center items-center space-y-2 min-h-[76px]">
+      <div className="relative flex-shrink-0 p-4 border-t border-border-color/30 bg-dark-panel flex flex-col justify-center items-center space-y-2 min-h-[80px]">
         <div className="text-sm text-center text-text-secondary h-5" aria-live="polite">
             {isTranslating && translationProgress ? (
                 <span className="animate-fade-in">{translationProgress}</span>
