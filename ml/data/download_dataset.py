@@ -111,7 +111,7 @@ def validate_jsonl(
 
 
 def download(out_path: Path, *, force: bool = False) -> Path:
-    """Download the dedup dataset file from the Hugging Face Hub.
+    """Download the dedup dataset file from the Hugging Face Bucket.
 
     Args:
         out_path: Destination path for the JSONL file.
@@ -120,9 +120,7 @@ def download(out_path: Path, *, force: bool = False) -> Path:
     Returns:
         Path to the downloaded file.
     """
-    # Lazy import so the validation helpers stay importable without the
-    # huggingface_hub dependency installed (e.g. in unit tests).
-    from huggingface_hub import hf_hub_download
+    import subprocess
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -130,15 +128,22 @@ def download(out_path: Path, *, force: bool = False) -> Path:
         print(f"Dataset already present at {out_path} (use --force to refetch).")
         return out_path
 
-    print(f"Downloading {DATASET_FILENAME} from {REPO_ID} ...")
-    cached = hf_hub_download(
-        repo_id=REPO_ID,
-        repo_type=REPO_TYPE,
-        filename=DATASET_FILENAME,
+    # richardadam/tran-vi-teacher-bucket is an HF Bucket (not a dataset repo),
+    # so hf_hub_download does not work — use `hf sync` CLI instead.
+    bucket_url = f"hf://buckets/{REPO_ID}"
+    print(f"Downloading {DATASET_FILENAME} from {bucket_url} ...")
+    result = subprocess.run(
+        [
+            "hf", "sync",
+            "--include", DATASET_FILENAME,
+            bucket_url,
+            str(out_path.parent),
+        ],
+        check=True,
+        text=True,
     )
-
-    # Copy the cached file to the requested location for a stable repo path.
-    out_path.write_bytes(Path(cached).read_bytes())
+    if result.stdout:
+        print(result.stdout)
     print(f"Saved to {out_path}")
     return out_path
 
