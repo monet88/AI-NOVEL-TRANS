@@ -15,13 +15,14 @@ import { ConfirmModal } from '../modals';
 
 interface ProjectItemProps {
     project: Project;
+    index: number;
     isActive: boolean;
     onSelect: () => void;
     onDelete: () => void;
     onRename: (newName: string) => void;
 }
 
-const ProjectItem: React.FC<ProjectItemProps> = React.memo(({ project, isActive, onSelect, onDelete, onRename }) => {
+const ProjectItem: React.FC<ProjectItemProps> = React.memo(({ project, index, isActive, onSelect, onDelete, onRename }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(project.name);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -44,13 +45,13 @@ const ProjectItem: React.FC<ProjectItemProps> = React.memo(({ project, isActive,
 
     return (
          <div
-            className={`group w-full text-left py-2 pr-1 rounded-md flex items-center justify-between transition-all duration-200 ease-in-out relative ${
+            className={`group w-full text-left py-2.5 pr-2 rounded-lg flex items-center justify-between transition-all duration-200 ease-in-out relative animate-fade-in-up stagger-${(index % 5) + 1} ${
                 isActive
-                ? 'bg-accent-primary text-white pl-4'
-                : 'text-text-secondary hover:bg-dark-hover hover:text-text-primary pl-2'
+                ? 'bg-accent-primary/10 text-accent-primary font-medium pl-4'
+                : 'text-text-secondary hover:bg-dark-hover/50 hover:text-text-primary pl-2'
             }`}
         >
-            {isActive && <div className="absolute left-1 top-2 bottom-2 w-1 bg-white rounded-full animate-grow-in-vertical origin-top"></div>}
+            {isActive && <div className="absolute left-1 top-2 bottom-2 w-1 bg-accent-primary rounded-full animate-grow-in-vertical origin-top shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>}
             {isEditing ? (
                 <input
                     ref={inputRef}
@@ -83,6 +84,7 @@ const ProjectItem: React.FC<ProjectItemProps> = React.memo(({ project, isActive,
 
 interface ChapterItemProps {
     chapter: Chapter;
+    index: number;
     isActive: boolean;
     onSelect: () => void;
     onDelete: () => void;
@@ -97,7 +99,7 @@ interface ChapterItemProps {
 }
 
 const ChapterItem: React.FC<ChapterItemProps> = React.memo(({ 
-    chapter, isActive, onSelect, onDelete, onRename, isDraggingOver,
+    chapter, index, isActive, onSelect, onDelete, onRename, isDraggingOver,
     onDragStart, onDragOver, onDrop, onDragEnter, onDragLeave, onDragEnd
  }) => {
     const [isEditing, setIsEditing] = useState(false);
@@ -133,16 +135,16 @@ const ChapterItem: React.FC<ChapterItemProps> = React.memo(({
             onDragEnter={onDragEnter}
             onDragLeave={onDragLeave}
             onDragEnd={onDragEnd}
-            className={`group w-full text-left py-2 pr-1 rounded-md flex items-center justify-between transition-all duration-200 ease-in-out relative ${
+            className={`group w-full text-left py-2.5 pr-2 rounded-lg flex items-center justify-between transition-all duration-200 ease-in-out relative animate-fade-in-up stagger-${(index % 5) + 1} ${
                 isActive
-                ? 'bg-accent-primary text-white pl-4'
-                : 'text-text-secondary hover:bg-dark-hover hover:text-text-primary pl-2'
+                ? 'bg-accent-primary/10 text-accent-primary font-medium pl-4'
+                : 'text-text-secondary hover:bg-dark-hover/50 hover:text-text-primary pl-2'
             }`}
         >
             {isDraggingOver && (
-                <div className="absolute top-0 left-2 right-2 h-0.5 bg-white opacity-75 rounded-full z-10"></div>
+                <div className="absolute top-0 left-2 right-2 h-0.5 bg-accent-primary opacity-75 rounded-full z-10"></div>
             )}
-            {isActive && <div className="absolute left-1 top-2 bottom-2 w-1 bg-white rounded-full animate-grow-in-vertical origin-top"></div>}
+            {isActive && <div className="absolute left-1 top-2 bottom-2 w-1 bg-accent-primary rounded-full animate-grow-in-vertical origin-top shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>}
             {isEditing ? (
                 <input
                     ref={inputRef}
@@ -250,7 +252,7 @@ const Sidebar: React.FC = () => {
   }
 
   return (
-    <aside className={`fixed lg:relative inset-y-0 left-0 z-30 w-72 bg-dark-sidebar border-r border-border-color p-2 flex flex-col space-y-2 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+    <aside className={`fixed lg:relative inset-y-0 left-0 z-30 w-72 bg-dark-sidebar p-4 flex flex-col space-y-4 shadow-2xl lg:shadow-none transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
       {/* Projects Section */}
       <div className="flex-shrink-0">
         <div className="flex justify-between items-center mb-1 pr-2">
@@ -273,9 +275,10 @@ const Sidebar: React.FC = () => {
         </button>
         <div className="mt-1 max-h-48 overflow-y-auto">
           <ul>
-            {projects.map((project) => (
+            {projects.map((project, idx) => (
               <li key={project.id}>
                 <ProjectItem
+                    index={idx}
                     project={project}
                     isActive={activeProjectId === project.id}
                     onSelect={() => selectProjectAndCloseSidebar(project.id)}
@@ -290,7 +293,7 @@ const Sidebar: React.FC = () => {
 
       {/* Chapters Section */}
       {activeProjectId && (
-        <div className="flex-grow flex flex-col min-h-0 border-t border-border-color pt-2">
+        <div className="flex-grow flex flex-col min-h-0 border-t border-border-color/30 pt-4">
           <div className="flex-shrink-0 space-y-1">
             <h3 className="px-2 text-xs font-bold text-text-secondary uppercase tracking-wider mb-1">Chapters</h3>
             <button onClick={handleAddChapter} className="w-full text-left p-2 rounded-md flex items-center space-x-2 transition-all duration-150 text-text-secondary hover:bg-dark-hover hover:text-text-primary transform hover:-translate-y-px">
@@ -304,9 +307,10 @@ const Sidebar: React.FC = () => {
           </div>
           <div className="overflow-y-auto flex-grow mt-1">
             <ul>
-                {chapters.map((chapter) => (
+                {chapters.map((chapter, idx) => (
                 <li key={chapter.id}>
                     <ChapterItem
+                        index={idx}
                         chapter={chapter}
                         isActive={activeChapterId === chapter.id}
                         onSelect={() => selectChapterAndCloseSidebar(chapter.id)}

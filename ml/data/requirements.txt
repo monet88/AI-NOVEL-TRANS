@@ -1,0 +1,10 @@
+# Phase 1 — data pivot pipeline dependencies
+#
+# Concurrency uses the google-genai SDK's native async client + asyncio, so
+# aiohttp (listed in the plan) is intentionally omitted to avoid an unused
+# dependency. Language/script validation uses pure-Python Unicode heuristics
+# (Latin-ratio + CJK-ratio), so fasttext is also not required.
+
+huggingface-hub>=0.25.0
+google-genai>=1.0.0
+tqdm>=4.66.0

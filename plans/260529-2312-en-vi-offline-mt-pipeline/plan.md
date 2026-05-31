@@ -42,7 +42,7 @@ Operational note: ưu tiên chạy trực tiếp bằng CLI để tối ưu tố
 
 | Phase | Name | Status | Effort | Env |
 |-------|------|--------|--------|-----|
-| 1 | [Data Pivot](./phase-01-data-preparation.md) | Pending | 4-6h | Local |
+| 1 | [Data Pivot](./phase-01-data-preparation.md) | In Progress (code done, data run pending) | 4-6h | Local |
 | 2 | [Fine-tune](./phase-02-model-training.md) | Pending | 2-3h | Kaggle T4 |
 | 3 | [Export + Deploy](./phase-03-ctranslate2-export.md) | Pending | 30min | Local |
 | 4 | [FastAPI Backend](./phase-04-fastapi-backend.md) | Done | 4-6h | Local |
