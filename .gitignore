@@ -44,3 +44,4 @@ ml/data/pivot/
 ml/data/final/
 *.jsonl
 ml/**/__pycache__/
+.kiro/
