@@ -1,11 +1,18 @@
 ---
 phase: 1
 title: "Data Pivot"
-status: pending
+status: in-progress
 priority: P1
 effort: "4-6h"
 dependencies: []
 ---
+
+> **Trạng thái thực thi (2026-05-31):** Toàn bộ code pipeline đã hoàn thành và
+> test (61/61 pass): `ml/data/download_dataset.py`, `ml/data/pivot_zh_en.py`,
+> `ml/data/split_train_val.py`, `ml/data/requirements.txt`, `ml/README.md`.
+> Phần *chạy thực tế* (tải ~350k rows + pivot Gemini ~$3.50, 4-6h) là thao tác
+> tốn chi phí/dài — chờ user duyệt trước khi chạy. Success criteria về số liệu
+> dữ liệu sẽ được tick sau khi chạy xong.
 
 # Phase 1: Data Pivot
 
