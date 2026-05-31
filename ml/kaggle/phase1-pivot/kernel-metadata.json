@@ -1,0 +1,13 @@
+{
+  "id": "minhthang6789/phase-1-pivot-zh-to-en-en-vi-novel-mt",
+  "title": "Phase 1 - Pivot ZH to EN (EN-VI Novel MT)",
+  "code_file": "run_pivot.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "dataset_sources": ["minhthang6789/en-vi-novel-mt-raw"],
+  "competition_sources": [],
+  "kernel_sources": []
+}

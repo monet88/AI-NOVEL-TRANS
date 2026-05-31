@@ -7,12 +7,20 @@ effort: "4-6h"
 dependencies: []
 ---
 
-> **Trạng thái thực thi (2026-05-31):** Toàn bộ code pipeline đã hoàn thành và
-> test (61/61 pass): `ml/data/download_dataset.py`, `ml/data/pivot_zh_en.py`,
-> `ml/data/split_train_val.py`, `ml/data/requirements.txt`, `ml/README.md`.
-> Phần *chạy thực tế* (tải ~350k rows + pivot Gemini ~$3.50, 4-6h) là thao tác
-> tốn chi phí/dài — chờ user duyệt trước khi chạy. Success criteria về số liệu
-> dữ liệu sẽ được tick sau khi chạy xong.
+> **Trạng thái thực thi (2026-05-31 13:58):** Pivot đang chạy trên Kaggle.
+> - Dataset `minhthang6789/en-vi-novel-mt-raw` đã upload (1.5GB, 347k rows)
+> - Kernel `minhthang6789/phase-1-pivot-zh-to-en-en-vi-novel-mt` v2 đang chạy
+> - Settings: No GPU, Internet ON, Persistence = Files only
+> - GEMINI_API_KEY đã thêm vào Kaggle Secrets
+> - Ước tính xong: ~18:00-20:00 ICT
+>
+> **Bước tiếp theo sau khi pivot xong (session mới):**
+> 1. Kiểm tra kernel status: `kaggle kernels status minhthang6789/phase-1-pivot-zh-to-en-en-vi-novel-mt`
+> 2. Download output: `kaggle kernels output minhthang6789/phase-1-pivot-zh-to-en-en-vi-novel-mt -p ml/data/pivot/`
+> 3. Verify: `wc -l ml/data/pivot/pivot_output.jsonl` (expect ~347k), kiểm tra `skipped.jsonl`
+> 4. Chạy train/val split: `ml/.venv/bin/python3 -m ml.data.split_train_val --input ml/data/pivot/pivot_output.jsonl --out-dir ml/data/split`
+> 5. Verify line counts: `wc -l ml/data/split/train.en ml/data/split/train.vi ml/data/split/val.en ml/data/split/val.vi`
+> 6. Tick success criteria bên dưới, update phase status → `done`, chuyển sang Phase 2
 
 # Phase 1: Data Pivot
 
