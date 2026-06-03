@@ -1,9 +1,9 @@
 ---
 title: "EN-VI Offline MT Pipeline"
 description: "Build offline EN→VI translation for murim/xianxia novels using fine-tuned opus-mt-en-vi + CTranslate2, integrated into existing React web app via FastAPI backend"
-status: pending
+status: in-progress
 priority: P1
-branch: "main"
+branch: "feat/phase1-en-vi-data-pivot"
 tags: [ml, nmt, fastapi, ctranslate2, opus-mt]
 blockedBy: []
 blocks: []
@@ -42,8 +42,8 @@ Operational note: ưu tiên chạy trực tiếp bằng CLI để tối ưu tố
 
 | Phase | Name | Status | Effort | Env |
 |-------|------|--------|--------|-----|
-| 1 | [Data Pivot](./phase-01-data-preparation.md) | In Progress (code done, data run pending) | 4-6h | Local |
-| 2 | [Fine-tune](./phase-02-model-training.md) | Pending | 2-3h | Kaggle T4 |
+| 1 | [Data Pivot](./phase-01-data-preparation.md) | Done | 4-6h | Kaggle + Local |
+| 2 | [Fine-tune](./phase-02-model-training.md) | Ready / Next | 2-3h | Kaggle T4 |
 | 3 | [Export + Deploy](./phase-03-ctranslate2-export.md) | Pending | 30min | Local |
 | 4 | [FastAPI Backend](./phase-04-fastapi-backend.md) | Done | 4-6h | Local |
 | 5 | [Web App Integration](./phase-05-web-app-integration.md) | Done | 4-6h | Local |
@@ -62,7 +62,7 @@ Operational note: ưu tiên chạy trực tiếp bằng CLI để tối ưu tố
 Step 1: PIVOT (~4-6h, ~$3.50)
   Input:  richardadam/tran-vi-teacher-bucket (347k ZH→VI, clean, dedup)
   Action: Gemini Flash-Lite dịch ZH→EN concurrent
-  Output: 347k cặp EN↔VI
+  Output: 345,819 pivot rows + 1,440 skipped; 345,441 validated EN↔VI pairs
 
 Step 2: FINE-TUNE (~2-3h, $0)
   Input:  347k EN→VI + opus-mt-en-vi pretrained
@@ -373,7 +373,7 @@ Benefits: No retraining needed, glossary = per-novel JSON refined by user over c
 - Canonical dataset standardized to `richardadam/tran-vi-teacher-bucket`
 - Glossary renamed from deterministic force-replace to best-effort known-variant post-processing
 - Phase 1 now specifies env key loading and atomic checkpoint/resume format
-- Phase 2 now specifies Kaggle Secrets/HF token handling, `save_steps=500`, and BLEU fallback path
+- Phase 2 now specifies Kaggle Secrets/HF token handling, epoch-aligned checkpointing, and BLEU fallback path
 - Phase 3 now uses `ct2-transformers-converter --model_type marian` as primary path and adds HF Spaces memory limits
 - Phase 4 rewritten with Pydantic validators, CORS env allowlist, key logging protections, timeout/rate guards, tokenizer requirements, and best-effort glossary contract
 - Phase 5 rewritten with full provider consumer surface, local-mt extraction behavior, health preflight, settings migration, glossary mapping, and hybrid timeout fallback

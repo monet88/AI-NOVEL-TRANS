@@ -196,6 +196,255 @@ patterns can be queried later:
 scripts/bin/harness-cli query friction
 ```
 
+### External Notebook / Kaggle Friction Pattern
+
+When a task runs through an external notebook runtime such as Kaggle, record and
+check these items before declaring the setup ready:
+
+- CLI visibility is not runtime visibility. A dataset shown by `kaggle datasets`
+  still must be attached with notebook **Add Input** before `/kaggle/input/...`
+  exists.
+- Do not assume a single mount path. Kaggle may mount datasets as
+  `/kaggle/input/<slug>/...` or `/kaggle/input/datasets/<owner>/<slug>/...`.
+  Runners should discover required files recursively under `/kaggle/input` and
+  print the resolved path plus available inputs on failure.
+- Script kernels may not import sibling files reliably. Either package the code
+  explicitly or generate a self-contained runner for the kernel entrypoint.
+- After generating a self-contained runner, run `python3 -m py_compile <runner>`
+  before pushing so missing imports and syntax errors are caught locally.
+- Separate credential failure modes: a Kaggle Secrets `HTTP Error 400` is a
+  runtime secret-access failure, not proof that the provider API key is invalid.
+  If a private-notebook direct-key workaround is used, document rotation after
+  the run and never commit the key.
+- Treat `403 Client Error: Forbidden` from `kaggle datasets status <owner>/<slug>`
+  as an ambiguous dataset-access signal, not immediate proof that credentials are
+  bad. First run the credential checker, then search owned datasets with
+  `kaggle datasets list --mine --search <slug-or-title>`. If credentials are OK
+  and the dataset is absent from `--mine`, create it from the local dataset
+  directory with `kaggle datasets create -p <dataset-dir> --dir-mode zip`, then
+  rerun `kaggle datasets status <owner>/<slug>` and expect `ready` before wiring
+  it into a kernel `dataset_sources` entry.
+- For Kaggle GPU runners, distinguish blocking errors from noisy image warnings:
+  - `HF_TOKEN Kaggle Secret unavailable` or `HF_TOKEN not found` is non-blocking
+    when the run can save model artifacts to Kaggle Output and Hub upload will be
+    done later. Do not paste tokens into committed files; direct-token workarounds
+    belong only in a private Kaggle UI copy.
+  - Pip resolver warnings about unrelated preinstalled packages (`jax`, `opencv`,
+    `cuml`, `kaggle-environments`, `sentence-transformers`, etc.) are usually
+    non-blocking if the runner pins and imports its own training stack.
+  - XLA/TensorFlow CUDA factory messages such as `Unable to register cuFFT`,
+    `cuDNN`, `cuBLAS`, or `computation placer already registered` are usually
+    non-blocking for PyTorch training unless followed by a traceback.
+- Preserve the compatible stack decisions for Kaggle P100 runs. P100 GPUs require
+  wheels that still support `sm_60`; newer PyTorch wheels can fail with
+  `cudaErrorNoKernelImageForDevice`. Pin `torch==2.2.2+cu121` from the PyTorch
+  CUDA 12.1 wheel index, pin `numpy<2` to avoid NumPy ABI failures, and pin the
+  older Transformers stack (`transformers==4.40.2`, `datasets==2.19.2`,
+  `accelerate==0.30.1`) so Marian checkpoints can load without newer
+  `torch.load` CVE guards that require `torch>=2.6`.
+- If `transformers.trainer_seq2seq` fails through `peft` with
+  `cannot import name 'clear_device_cache' from 'accelerate.utils.memory'`, remove
+  preinstalled `peft` in the runner unless the job actually uses LoRA/PEFT. Full
+  MarianMT fine-tuning does not require PEFT, and newer PEFT can require newer
+  Accelerate symbols than the P100-compatible pinned stack provides.
+
+### Colab Runtime Recovery Pattern
+
+When a task runs through Google Colab, treat `/content` as disposable and verify
+Drive visibility before blaming missing project files:
+
+- If Drive web still shows files but Colab sees empty `code/` or `data/`, assume a
+  stale `/content/drive` mount first. Hard-remount with `drive.flush_and_unmount()`,
+  remove the local `/content/drive` mountpoint, then `drive.mount('/content/drive',
+  force_remount=True)`.
+- After mounting, print the resolved workspace path plus the sorted `code/` and
+  `data/` file lists. Do not proceed until Colab sees the same required files as
+  Drive web.
+- Runtime packages under `/content`, such as `/content/ai-novel-trans-runtime`,
+  disappear after reconnect/reset. Setup, training, and eval cells should recreate
+  the runtime package from Drive before calling `os.chdir(RUNTIME_ROOT)`.
+- Dependency checks should be per required module, not a single sentinel package.
+  A runtime can have `transformers` installed but still miss `sacrebleu` or
+  `sacremoses`.
+- For current Transformers versions, `Seq2SeqTrainer(...)` uses
+  `processing_class=tokenizer`; keep `DataCollatorForSeq2Seq(tokenizer=...)` as-is
+  because that argument remains valid.
+- Long Colab evaluations can exceed tool timeouts. If the notebook output reached
+  `Runtime ready` and started streaming evaluation logs, the runtime-recovery
+  error is fixed; continue monitoring the notebook output instead of rerunning the
+  setup blindly.
+
+## Agent Operating Rules
+
+Agents must treat Harness as the durable operating loop for every meaningful task.
+The chat transcript is not the source of truth; the repository docs plus Harness
+CLI records are.
+
+### When Durable Records Are Required
+
+Create or update durable records for any task that does one or more of these:
+
+- fixes a bug or validates a bug as non-reproducible
+- changes product behavior, process, validation, docs, plans, or operational steps
+- finalizes a technical or product decision
+- discovers repeated friction, missing proof, stale docs, or a reusable lesson
+- changes external runtime behavior such as Colab, Kaggle, Hugging Face, or provider setup
+- takes more than a trivial read-only answer
+
+Skip durable records only for pure read-only answers or tiny conversational replies
+with no repository, process, validation, or operational change.
+
+### 1. Intake Before Work
+
+Classify the request with `docs/FEATURE_INTAKE.md`, then record the intake before
+meaningful work starts:
+
+```bash
+scripts/harness intake \
+  --type "Maintenance request" \
+  --summary "Short task summary" \
+  --lane normal \
+  --flags "Existing behavior,Weak proof" \
+  --docs "docs/HARNESS.md,docs/FEATURE_INTAKE.md" \
+  --notes "Context notes"
+```
+
+Lane defaults:
+
+- `tiny`: narrow docs, copy, naming, or low-risk mechanical edits
+- `normal`: bugfix, feature slice, process update, notebook/runtime work, bounded behavior change
+- `high-risk`: auth, authorization, data loss, migrations, audit/security, external provider behavior, public contracts, or multi-domain changes
+
+Also query current proof and process pain early:
+
+```bash
+scripts/harness query matrix
+scripts/harness query backlog
+```
+
+### 2. Story For Trackable Work
+
+Create a story when the work has acceptance criteria, validation proof, a durable
+status, or future follow-up value. Do not create a story for tiny read-only chat.
+
+```bash
+scripts/harness story add \
+  --id "OPS-SHORT-ID" \
+  --title "Human readable title" \
+  --lane normal \
+  --contract "What should be true after this work" \
+  --notes "Extra context"
+```
+
+After validation, update story evidence. Proof flags are numeric `0` or `1`, not
+`yes` or `no`:
+
+```bash
+scripts/harness story update \
+  --id "OPS-SHORT-ID" \
+  --status implemented \
+  --unit 0 \
+  --integration 0 \
+  --e2e 0 \
+  --platform 1 \
+  --evidence "What proof exists"
+```
+
+### 3. Backlog For Repeated Friction
+
+When a task exposes a repeated failure pattern, missing template, stale rule,
+manual recovery step, or out-of-scope improvement, add backlog instead of leaving
+it in chat only:
+
+```bash
+scripts/harness backlog add \
+  --title "Reusable Colab runtime recovery checklist" \
+  --while "Phase 2 Colab debugging" \
+  --pain "What was hard/repeated/ambiguous" \
+  --suggestion "What should be added or improved" \
+  --risk normal \
+  --predicted "Expected benefit"
+```
+
+### 4. Decisions Need Decision Records
+
+If a decision affects architecture, validation policy, source-of-truth hierarchy,
+external providers, security, data durability, or future implementation direction,
+record it as a decision. A trace field is not enough.
+
+Required for durable decisions:
+
+- markdown decision under `docs/decisions/`
+- durable decision row when using the CLI decision workflow
+- trace `--decisions` may summarize the decision, but it does not replace the decision log
+
+Current CLI command shape matters: `story update` proof flags use `0/1`, and
+`story verify <id>` only runs configured verification commands.
+
+### 5. Trace After Work
+
+Every meaningful task ends with a trace. Normal-lane work needs at least a
+standard trace: intake/story when available, actions, files read, files changed,
+outcome, errors, and friction.
+
+```bash
+scripts/harness trace \
+  --summary "What was completed" \
+  --intake 2 \
+  --story "OPS-SHORT-ID" \
+  --agent claude-code \
+  --outcome completed \
+  --actions "read docs,updated files,ran validation" \
+  --read "docs/HARNESS.md,scripts/harness query matrix" \
+  --changed "docs/HARNESS.md,harness.db" \
+  --decisions "kept update path as --merge" \
+  --errors "none" \
+  --friction "none"
+```
+
+Use `docs/TRACE_SPEC.md` for the required tier:
+
+- `tiny`: minimal, or standard if Harness/docs changed
+- `normal`: standard
+- `high-risk`: detailed
+
+### 6. Query Before Final Response
+
+Before reporting done, verify durable state and proof:
+
+```bash
+scripts/harness query stats
+scripts/harness query matrix
+scripts/harness query backlog
+scripts/harness query decisions
+scripts/harness query traces
+scripts/harness query friction
+```
+
+Use only the queries relevant to the task, but always verify records that were
+created or updated.
+
+### 7. Update Harness From Upstream
+
+Use merge mode to preserve local project customizations:
+
+```bash
+curl -fsSL "https://raw.githubusercontent.com/hoangnb24/repository-harness/main/scripts/install-harness.sh?$(date +%s)" \
+  | bash -s -- --merge --yes
+```
+
+Then run:
+
+```bash
+scripts/harness migrate
+scripts/harness query stats
+git diff --check
+```
+
+If `--merge` skips an existing `scripts/bin/harness-cli`, update the binary from
+the latest GitHub release asset with checksum verification, or use an overwrite
+mode only when backup/replace is intended.
+
 ## Task Loop
 
 For every task:

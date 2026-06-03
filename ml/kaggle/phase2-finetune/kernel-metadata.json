@@ -1,0 +1,13 @@
+{
+  "id": "minhthang6789/phase-2-fine-tune-opus-mt-en-vi-en-vi-novel-mt",
+  "title": "Phase 2 - Fine-tune opus-mt-en-vi (EN-VI Novel MT)",
+  "code_file": "run_finetune.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": ["minhthang6789/en-vi-novel-split"],
+  "competition_sources": [],
+  "kernel_sources": []
+}

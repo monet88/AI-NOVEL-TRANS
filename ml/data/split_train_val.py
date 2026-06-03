@@ -4,9 +4,10 @@ Pipeline (plan phase-01 steps 3-5):
 
 1. Validate each pivoted row:
    * EN output must be >= 80% Latin script (reject non-Latin / wrong-language).
-   * length ratio len(EN)/len(ZH) must be within [0.3, 4.0].
+   * length ratio len(EN)/len(ZH) must be within [0.3, 5.5] for ZH rows
+     with at least 10 characters.
    * EN output must contain <= 20% CJK characters (failed translation).
-   * reject refusal patterns ("I cannot", "I'm sorry", "As an AI", ...).
+   * reject refusal patterns (translation-specific phrases only).
    Rejected rows are logged to ``pivot_rejected.jsonl`` with a reason.
 
 2. Split the surviving pairs 95% train / 5% val (deterministic seed).
@@ -37,19 +38,23 @@ from typing import Iterable
 MIN_LATIN_RATIO = 0.80
 MAX_CJK_RATIO = 0.20
 MIN_LEN_RATIO = 0.30
-MAX_LEN_RATIO = 4.0
+# Empirically, EN pivots for this corpus cluster around 3.5x-5x the ZH length.
+# 5.5 keeps the validator from rejecting legitimate long-form prose while still
+# filtering runaway expansions and duplicated output.
+MAX_LEN_RATIO = 5.5
+MIN_ZH_LEN = 10
 DEFAULT_VAL_FRACTION = 0.05
 DEFAULT_SEED = 42
 
 REFUSAL_PATTERNS = (
-    "i cannot",
-    "i can't",
-    "i'm sorry",
-    "i am sorry",
     "as an ai",
-    "i am unable",
-    "i'm unable",
     "cannot translate",
+    "i cannot translate",
+    "i cannot assist",
+    "i'm unable to translate",
+    "i am unable to translate",
+    "i'm sorry, i cannot",
+    "i am sorry, i cannot",
 )
 
 
@@ -62,13 +67,16 @@ class Pair:
 
 
 def _is_cjk(ch: str) -> bool:
-    """Return True if *ch* is a CJK ideograph or CJK punctuation."""
+    """Return True if *ch* is a CJK ideograph or CJK punctuation.
+
+    The range stays narrow on purpose so fullwidth Latin letters do not inflate
+    the CJK ratio and cause false rejects.
+    """
     code = ord(ch)
     return (
         0x4E00 <= code <= 0x9FFF  # CJK Unified Ideographs
         or 0x3400 <= code <= 0x4DBF  # CJK Extension A
         or 0x3000 <= code <= 0x303F  # CJK Symbols and Punctuation
-        or 0xFF00 <= code <= 0xFFEF  # Halfwidth/Fullwidth Forms
     )
 
 
@@ -136,11 +144,14 @@ def validate_pivot_row(source_zh: str, pivot_en: str) -> str | None:
     if cjk_ratio(en) > MAX_CJK_RATIO:
         return "high_cjk_ratio"
 
-    ratio = len(en) / len(zh)
-    if ratio < MIN_LEN_RATIO:
-        return "length_ratio_low"
-    if ratio > MAX_LEN_RATIO:
-        return "length_ratio_high"
+    # Very short Chinese snippets are noisy: length ratio is unstable there and
+    # tends to over-reject legitimate dialogue fragments or single-word lines.
+    if len(zh) >= MIN_ZH_LEN:
+        ratio = len(en) / len(zh)
+        if ratio < MIN_LEN_RATIO:
+            return "length_ratio_low"
+        if ratio > MAX_LEN_RATIO:
+            return "length_ratio_high"
 
     return None
 

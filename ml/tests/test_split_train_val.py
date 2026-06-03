@@ -35,8 +35,8 @@ class TestScriptRatios:
 
 
 class TestContainsRefusal:
-    def test_detects_i_cannot(self):
-        assert contains_refusal("I cannot translate this.")
+    def test_detects_cannot_translate(self):
+        assert contains_refusal("I cannot translate this text.")
 
     def test_detects_as_an_ai(self):
         assert contains_refusal("As an AI, I will not...")
@@ -44,10 +44,17 @@ class TestContainsRefusal:
     def test_clean_text_not_flagged(self):
         assert not contains_refusal("The dragon king roared.")
 
+    def test_clean_dialogue_not_flagged(self):
+        assert not contains_refusal("I cannot believe how strong he was.")
+        assert not contains_refusal("I'm sorry to hear that.")
+        assert not contains_refusal("I can't wait to see the outcome.")
+        assert not contains_refusal("I cannot help feeling nervous.")
+        assert not contains_refusal("I am unable to contain my joy.")
+
 
 class TestValidatePivotRow:
     def test_clean_pair_passes(self):
-        # Realistic paragraph-length pair keeps len(EN)/len(ZH) within [0.3, 4.0].
+        # Realistic paragraph-length pair keeps len(EN)/len(ZH) within [0.3, 5.5].
         assert (
             validate_pivot_row(
                 "林动深吸一口气，转身离开了山洞。",
@@ -76,9 +83,17 @@ class TestValidatePivotRow:
         assert validate_pivot_row("这是一段很长的中文文本内容", "Hi") == "length_ratio_low"
 
     def test_length_ratio_too_long(self):
-        zh = "短"
+        zh = "短短短短短短短短短短"
         en = "This is an extremely long English translation " * 3
         assert validate_pivot_row(zh, en) == "length_ratio_high"
+
+    def test_length_ratio_skipped_at_nine_chars(self):
+        zh = "短短短短短短短短短"
+        en = "x" * 100
+        assert validate_pivot_row(zh, en) is None
+
+    def test_short_zh_passes_length_check(self):
+        assert validate_pivot_row("嗯", "He let out a soft sound of acknowledgment.") is None
 
 
 class TestSplitPairs:

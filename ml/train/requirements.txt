@@ -1,0 +1,11 @@
+# Phase 2 fine-tuning dependencies
+# Transformers + Datasets drive seq2seq training, evaluation, and Hub push.
+
+transformers>=4.40.0
+datasets>=2.19.0
+accelerate>=0.30.0
+sentencepiece>=0.2.0
+sacrebleu>=2.4.0
+sacremoses>=0.1.1
+torch>=2.2.0
+huggingface-hub>=0.25.0
