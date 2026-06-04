@@ -42,6 +42,8 @@ skills-lock.json
 ml/data/raw/
 ml/data/pivot/
 ml/data/final/
+ml/data/split/*.en
+ml/data/split/*.vi
 *.jsonl
 ml/**/__pycache__/
 .kiro/
