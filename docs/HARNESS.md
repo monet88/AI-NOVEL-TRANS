@@ -273,6 +273,20 @@ Drive visibility before blaming missing project files:
   `Runtime ready` and started streaming evaluation logs, the runtime-recovery
   error is fixed; continue monitoring the notebook output instead of rerunning the
   setup blindly.
+- For Colab L4 evaluation or inference cells, avoid low default batch sizes when
+  memory is clearly underused. The observed runtime had NVIDIA L4, about 22.5 GB
+  GPU RAM, 53 GB system RAM, and only about 4 GB GPU RAM used at batch size 16.
+  Start official EN→VI generation evals with `BATCH_SIZE = 64`, `NUM_BEAMS = 4`,
+  `MAX_LENGTH = 256`, `MAX_NEW_TOKENS = 256`, and FP16 model loading when CUDA is
+  available. Keep `num_beams=4` for official metrics; use greedy decoding only for
+  quick smoke tests.
+- Optimized Colab cells should call `gc.collect()`, `torch.cuda.empty_cache()`, and
+  `torch.cuda.ipc_collect()` before loading the model, log `torch.cuda.mem_get_info()`
+  before/after load and during progress, and automatically fall back through batch
+  sizes `64 → 48 → 32 → 16` after CUDA OOM.
+- Evaluation artifacts should include the effective config in their names, such as
+  `bs64-beam4-fp161`, while also updating latest metrics and predictions files for
+  downstream comparisons.
 
 ## Agent Operating Rules
 
